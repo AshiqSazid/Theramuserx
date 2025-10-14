@@ -1,0 +1,40 @@
+[theme]
+base="light"
+
+# Primary color for highlights, buttons, and accents
+primaryColor="#5B9C96"
+
+# Backgrounds
+backgroundColor="#5B9C96"             # main background (soft olive)
+secondaryBackgroundColor="#a8b894"    # make tables match the background
+
+# Text colors
+textColor="#000000"                                      # warm beige with better contrast  # light beige text
+font="sans serif"
+
+# Color Schema for Visualizations
+[color_schema]
+# Slider colors
+slider_primary="#a8b894"           # Olive green - main expanding color
+slider_secondary="#e8ddb5"         # Light beige - opposite expanding color
+slider_track="#5B9C96"             # Teal - additional slider accent color
+
+# Table colors
+table_header="#e8ddb5"             # Light beige - table header background
+table_cells="#a8b894"              # Olive green - table cell background
+table_border="#d4c4a8"             # Dark beige - table border color
+table_hover="#A3B18A"              # Medium olive - table hover color
+
+# Spider Map colors
+spider_primary="#5B9C96"           # Teal - main spider web color
+spider_secondary="#a8b894"         # Olive green - secondary web color
+spider_fill="#e8ddb580"            # Light beige with transparency - fill color
+spider_text="#000000"              # Black text for labels
+spider_grid="#A3B18A50"            # Olive green with transparency - grid lines
+
+# Additional UI colors
+accent_teal="#5B9C96"              # Main accent teal
+accent_olive="#a8b894"             # Olive green accent
+accent_beige="#e8ddb5"             # Light beige accent
+accent_dark="#344E41"              # Dark green for borders
+
