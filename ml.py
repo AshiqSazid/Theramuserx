@@ -1,9 +1,8 @@
-import os
 import requests
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timedelta
 import json
-
+import os
 # OBVIOUS DEBUG MARKER - This should appear when ml.py is imported
 print("ml")
 import numpy as np
@@ -1480,32 +1479,41 @@ class DatabaseManager:
 
     def __init__(self, db_path: str = "theramuse.db"):
         """Initialize database connection and create tables if needed"""
-        # Define a safe, writable directory (works locally and on Streamlit Cloud)
-        base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
+        import tempfile, os, sqlite3
 
         try:
-            # Try to create directory if missing
+            # Local persistent folder (use ~/.theramuserx_data if writable)
+            base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
             os.makedirs(base_dir, exist_ok=True)
             os.chmod(base_dir, 0o777)
+            db_file = os.path.join(base_dir, db_path)
 
-            # Build full path
-            self.db_path = os.path.join(base_dir, db_path)
+            # Test write permission
+            with open(db_file, "a"):
+                pass
+
         except Exception:
-            # Streamlit Cloud fallback (no write access to disk)
-            self.db_path = ":memory:"
+            # Streamlit Cloud fallback → temp folder (ephemeral, but writable)
+            base_dir = tempfile.gettempdir()
+            db_file = os.path.join(base_dir, db_path)
 
+        self.db_path = db_file
         self.conn = None
         self.connect()
         self.create_tables()
 
     def connect(self):
-        """Establish SQLite connection"""
+        """Establish SQLite connection safely"""
+        import sqlite3
         try:
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        except Exception as e:
-            print(f"[ERROR] Failed to connect to database: {e}")
+            self.conn.row_factory = sqlite3.Row  # allow dict-like access
+            print(f"✅ Connected to DB at {self.db_path}")
+        except sqlite3.Error as e:
+            print(f"[ERROR] Failed to connect: {e}. Falling back to :memory:")
             self.db_path = ":memory:"
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
 
     def create_tables(self):
         """Create all necessary tables"""
@@ -1740,7 +1748,27 @@ class TheraMuse:
         print("Initializing TheraMuse v9.0 - Synchronized Build")
         print(""*30 + "\n")
 
-        self.model_path = model_path
+        # Set up proper model directory structure
+        from pathlib import Path
+        import tempfile
+        import os
+
+        try:
+            # Try to use user data directory for persistence
+            models_dir = Path.home() / ".theramuserx_data" / "models"
+            models_dir.mkdir(parents=True, exist_ok=True)
+            # Test write permission
+            test_file = models_dir / "test_write.txt"
+            with open(test_file, "w") as f:
+                f.write("test")
+            test_file.unlink()
+            self.model_path = models_dir / model_path
+        except Exception:
+            # Fall back to temp directory
+            models_dir = Path(tempfile.gettempdir())
+            self.model_path = models_dir / model_path
+
+        print(f"Model path set to: {self.model_path}")
         self.db = DatabaseManager(db_path)
 
         # Initialize therapy modules
@@ -1867,14 +1895,30 @@ class TheraMuse:
         return recommendations
 
     def _export_recommendations_json(self, recommendations: Dict) -> Optional[Path]:
-        """Export recommendations to a timestamped JSON file at repo root.
+        """Export recommendations to a timestamped JSON file.
 
         Filename format: theramuse_recommendations_{condition}_{YYYYmmddHHMMSS}_{YYYYmmdd}.json
         Returns the written Path on success, or None on failure.
         """
-        # Resolve repo root (parent of this 'theramuse_app' dir)
-        base_dir = Path(__file__).resolve().parents[1]
-        base_dir.mkdir(parents=True, exist_ok=True)
+        import tempfile
+        import os
+
+        # Use temp directory for Streamlit Cloud compatibility
+        base_dir = Path(tempfile.gettempdir())
+
+        # Try to use user data directory first for persistence
+        try:
+            user_data_dir = Path.home() / ".theramuserx_data"
+            user_data_dir.mkdir(parents=True, exist_ok=True)
+            # Test write permission
+            test_file = user_data_dir / "test_write.txt"
+            with open(test_file, "w") as f:
+                f.write("test")
+            test_file.unlink()
+            base_dir = user_data_dir
+        except Exception:
+            # Fall back to temp directory
+            base_dir = Path(tempfile.gettempdir())
 
         condition = recommendations.get("condition", "unknown")
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -1886,11 +1930,14 @@ class TheraMuse:
         if "generated_at" not in recommendations:
             recommendations["generated_at"] = datetime.now().isoformat()
 
-        with open(fpath, "w", encoding="utf-8") as f:
-            json.dump(recommendations, f, ensure_ascii=False, indent=2)
-
-        print(f" Exported recommendations JSON → {fpath}")
-        return fpath
+        try:
+            with open(fpath, "w", encoding="utf-8") as f:
+                json.dump(recommendations, f, ensure_ascii=False, indent=2)
+            print(f" Exported recommendations JSON → {fpath}")
+            return fpath
+        except Exception as e:
+            print(f"[ERROR] Failed to export recommendations: {e}")
+            return None
 
     def record_feedback(self, patient_id: str, session_id: str, condition: str,
                        song: Dict, feedback_type: str, patient_info: Dict = None):
@@ -2078,6 +2125,9 @@ class TheraMuse:
     def _save_model(self):
         """STEP 13: Save current model state"""
         try:
+            # Ensure directory exists
+            self.model_path.parent.mkdir(parents=True, exist_ok=True)
+
             model_data = {
                 "bandits": self.bandits,
                 "exploration_rate": self.exploration_rate,
