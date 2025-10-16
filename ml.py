@@ -1479,15 +1479,32 @@ class DatabaseManager:
 
     def __init__(self, db_path: str = "theramuse.db"):
         """Initialize database connection and create tables if needed"""
-        self.db_path = db_path
+        # Define a safe, writable directory (works locally and on Streamlit Cloud)
+        base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
+
+        try:
+            # Try to create directory if missing
+            os.makedirs(base_dir, exist_ok=True)
+            os.chmod(base_dir, 0o777)
+
+            # Build full path
+            self.db_path = os.path.join(base_dir, db_path)
+        except Exception:
+            # Streamlit Cloud fallback (no write access to disk)
+            self.db_path = ":memory:"
+
         self.conn = None
         self.connect()
         self.create_tables()
 
     def connect(self):
-        """Establish database connection"""
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
+        """Establish SQLite connection"""
+        try:
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        except Exception as e:
+            print(f"[ERROR] Failed to connect to database: {e}")
+            self.db_path = ":memory:"
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
 
     def create_tables(self):
         """Create all necessary tables"""
