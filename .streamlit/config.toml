@@ -37,4 +37,11 @@ accent_teal="#5B9C96"              # Main accent teal
 accent_olive="#a8b894"             # Olive green accent
 accent_beige="#e8ddb5"             # Light beige accent
 accent_dark="#344E41"              # Dark green for borders
-
+#youtube
+API_BASE_URL = "https://api.rx.theramuse.net/api/youtube/search"
+[server]
+headless = true
+port = 8501
+enableCORS = true
+enableXsrfProtection = true
+address = "0.0.0.0"
