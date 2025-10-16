@@ -954,7 +954,27 @@ def get_condition_code(condition: str) -> str:
 # PATIENT DATABASE FUNCTIONS
 def get_patient_db_connection():
     """Get connection to patient database"""
-    db_path = Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+    # Use relative path - check multiple possible locations
+    import os
+
+    # Get the directory where the script is located
+    script_dir = Path(__file__).parent
+
+    # Possible database locations
+    possible_paths = [
+        script_dir / "theramuse.db",  # Same directory as script
+        Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db"),  # Original path
+        Path.home() / "Documents/ubuntu/thera/theramuse_app/theramuse.db",  # Home relative
+    ]
+
+    for db_path in possible_paths:
+        if db_path.exists():
+            break
+    else:
+        # If no database file exists, create one in the script directory
+        db_path = script_dir / "theramuse.db"
+        db_path.touch()  # Create empty file
+
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
