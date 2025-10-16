@@ -1481,23 +1481,36 @@ class DatabaseManager:
         """Initialize database connection and create tables if needed"""
         import tempfile, os, sqlite3
 
-        try:
-            # Local persistent folder (use ~/.theramuserx_data if writable)
-            base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
-            os.makedirs(base_dir, exist_ok=True)
-            os.chmod(base_dir, 0o777)
-            db_file = os.path.join(base_dir, db_path)
+        # Streamlit Cloud detection - use in-memory database as primary fallback
+        is_streamlit_cloud = (
+            os.environ.get('STREAMLIT_SERVER_MODE') == 'cloud' or
+            os.environ.get('VERCEL') == '1' or
+            not os.access(os.path.expanduser("~"), os.W_OK)
+        )
 
-            # Test write permission
-            with open(db_file, "a"):
-                pass
+        if is_streamlit_cloud:
+            print("🌐 Streamlit Cloud detected - using in-memory database")
+            self.db_path = ":memory:"
+        else:
+            try:
+                # Local persistent folder (use ~/.theramuserx_data if writable)
+                base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
+                os.makedirs(base_dir, exist_ok=True)
+                os.chmod(base_dir, 0o777)
+                db_file = os.path.join(base_dir, db_path)
 
-        except Exception:
-            # Streamlit Cloud fallback → temp folder (ephemeral, but writable)
-            base_dir = tempfile.gettempdir()
-            db_file = os.path.join(base_dir, db_path)
+                # Test write permission
+                with open(db_file, "a"):
+                    pass
 
-        self.db_path = db_file
+                self.db_path = db_file
+                print(f"📁 Using persistent database: {self.db_path}")
+
+            except Exception as e:
+                print(f"⚠️ Cannot create persistent database: {e}")
+                print("🌐 Falling back to in-memory database")
+                self.db_path = ":memory:"
+
         self.conn = None
         self.connect()
         self.create_tables()
