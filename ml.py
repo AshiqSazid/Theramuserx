@@ -2,7 +2,7 @@ import requests
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timedelta
 import json
-import os
+
 # OBVIOUS DEBUG MARKER - This should appear when ml.py is imported
 print("ml")
 import numpy as np
@@ -67,31 +67,112 @@ class YouTubeAPI:
         return None
 
     def _is_valid_music_result(self, song: Dict) -> bool:
-        """Filter out shorts, reels, and non-musical content."""
+        """Strictly filter for individual songs only, excluding playlists, shorts, reels, and short videos."""
         title = song.get('title', '')
         if not title:
             return False
         lowered_title = title.lower()
+
+        # EXTREMELY Strict disallowed markers for non-song content
         disallowed_title_markers = [
-            "#short", "shorts", "short video", "short reel", "short clip",
-            "shortfilm", "short film", "reel", "reels", "tiktok", "tiktok video",
-            "instagram", "preview", "teaser", "behind the scenes", "vlog"
+            # Shorts and short videos (COMPREHENSIVE)
+            "#short", "shorts", "short video", "short reel", "short clip", "short film",
+            "shortfilm", "short movie", "mini movie", "quick video", "quick clip",
+            "reel", "reels", "instagram reel", "insta reel", "facebook reel",
+            "tiktok", "tiktok video", "tik tok", "douyin", "short content",
+            # Social media and platform-specific
+            "instagram", "insta", "facebook", "twitter", "x video", "snapchat",
+            "preview", "teaser", "trailer", "behind the scenes", "bts", "making of",
+            "vlog", "video blog", "daily vlog", "life vlog", "reaction video",
+            # Content type indicators
+            "compilation", "best of", "top 10", "top 5", "countdown", "ranking",
+            "moments", "highlights", "best moments", "funny moments", "epic moments",
+            # Playlist and collection markers
+            "playlist", "mix", "collection", "album", "compilation album",
+            "greatest hits", "top songs", "various artists", "multiple artists",
+            "full album", "complete album", "discography", "megamix", "nonstop",
+            "medley", "mashup", "remixes", "dubstep", "trap remix", "edm remix",
+            # Multi-part content
+            "part 1", "part 2", "part 3", "episode 1", "episode 2", "season 1",
+            "vol.", "volume", "track", "chapter", "section", "mixtape"
         ]
         if any(marker in lowered_title for marker in disallowed_title_markers):
             return False
 
-        url = song.get('url')
-        if isinstance(url, str) and 'shorts/' in url.lower():
+        # Check for playlist indicators in title
+        playlist_indicators = [
+            "part 1", "part 2", "part 3", "episode", "vol.", "volume", "track",
+            "chapter", "section", "mixtape", "radio edit", "extended mix"
+        ]
+        if any(indicator in lowered_title for indicator in playlist_indicators):
             return False
 
+        # ENHANCED URL filtering - exclude shorts, reels, playlists, and unwanted content
+        url = song.get('url')
+        if isinstance(url, str):
+            url_lower = url.lower()
+            # YouTube shorts and reels
+            if any(pattern in url_lower for pattern in [
+                'shorts/', '/shorts', 'youtube.com/shorts', 'youtu.be/shorts',
+                'reel', 'instagram.com/reel', '/reel/', 'facebook.com/reel',
+                'tiktok.com', 'douyin.com', 'v.redd.it'
+            ]):
+                return False
+            # Playlist URLs
+            if any(pattern in url_lower for pattern in [
+                'playlist', '/playlist', 'watch?v=', '&list=', 'music.youtube.com',
+                'youtube.com/playlist', 'youtube.com/multi'
+            ]):
+                return False
+            # Social media platforms
+            if any(platform in url_lower for platform in [
+                'instagram.com', 'tiktok.com', 'facebook.com', 'twitter.com',
+                'snapchat.com', 'vimeo.com', 'dailymotion.com'
+            ]):
+                return False
+
+        # Duration check - individual songs are typically 2-10 minutes
         duration_seconds = self._parse_duration_seconds(song.get('duration'))
-        if duration_seconds is not None and duration_seconds < 90:
+        if duration_seconds is not None:
+            if duration_seconds < 120:  # Less than 2 minutes = likely short/reel
+                return False
+            if duration_seconds > 600:  # More than 10 minutes = likely playlist/album
+                return False
+
+        # STRICT validation for individual songs
+        # Check if it's actually an individual song (look for artist - song format)
+        has_artist_separator = any(char in lowered_title for char in [' - ', ' by ', ' ft. ', ' feat. ', ' x ', ' vs '])
+
+        # Additional checks for legitimate individual songs
+        description = song.get('description', '').lower() if song.get('description') else ''
+        channel = song.get('channel', '').lower() if song.get('channel') else ''
+
+        # Must have at least ONE of these indicators to be considered a legitimate song
+        legitimate_song_indicators = [
+            has_artist_separator,  # Artist - Song format
+            any(word in lowered_title for word in ['official', 'video', 'audio', 'lyric', 'music video']),
+            any(word in description for word in ['song', 'single', 'track', 'official']),
+            not any(word in description for word in ['playlist', 'album', 'collection', 'various artists']),
+            not any(word in channel for word in ['various artists', 'topic', 'compilation'])
+        ]
+
+        if not any(legitimate_song_indicators):
             return False
+
+        # Final check - if title suggests multiple songs, reject
+        multi_song_indicators = [
+            'songs', 'tracks', 'hits', 'collection', 'album', 'various',
+            'multiple artists', 'best of', 'greatest', 'top', 'essentials'
+        ]
+        if any(indicator in lowered_title for indicator in multi_song_indicators):
+            # Only allow if it's clearly an individual song by a known artist
+            if not has_artist_separator:
+                return False
 
         return True
 
     def _vary_query(self, base_query: str) -> str:
-        """Smart music-oriented query variations"""
+        """Smart music-oriented query variations - prioritize individual songs"""
         if base_query not in self._query_history:
             self._query_history[base_query] = 0
         self._query_history[base_query] += 1
@@ -102,35 +183,150 @@ class YouTubeAPI:
         has_song = " song" in query_lower or query_lower.endswith(" song")
         has_music = " music" in query_lower or query_lower.endswith(" music")
 
-        # Choose variations based on existing keywords
+        # Prioritize individual song queries only
         if has_song or has_music:
             variations = [
                 base_query,
-                f"{base_query} soundtrack",
                 f"{base_query} official audio",
                 f"{base_query} official video",
                 f"{base_query} live performance",
-                f"{base_query} classic",
-                f"{base_query} relaxing",
-                f"{base_query} playlist",
-                f"{base_query} collection",
-                f"{base_query} best"
+                f"{base_query} acoustic version",
+                f"{base_query} studio version",
+                f"{base_query} original version",
+                f"{base_query} single version",
+                f"{base_query} radio edit"
             ]
         else:
             variations = [
                 f"{base_query} song",
-                f"{base_query} music",
-                f"{base_query} soundtrack",
                 f"{base_query} official audio",
                 f"{base_query} official video",
                 f"{base_query} live performance",
-                f"{base_query} old song",
-                f"{base_query} classic music",
-                f"{base_query} relaxing song",
+                f"{base_query} acoustic version",
+                f"{base_query} studio version",
+                f"{base_query} original song",
+                f"{base_query} single",
+                f"{base_query} track"
             ]
 
         variation_index = (usage_count - 1) % len(variations)
         return variations[variation_index]
+
+    def _fallback_playlist_query(self, base_query: str) -> str:
+        """Fallback playlist queries when no individual songs are found"""
+        playlist_variations = [
+            f"{base_query} playlist",
+            f"{base_query} collection",
+            f"{base_query} mix",
+            f"{base_query} compilation",
+            f"{base_query} best songs",
+            f"{base_query} top tracks",
+            f"{base_query} greatest hits",
+            f"{base_query} essentials"
+        ]
+        return random.choice(playlist_variations)
+
+    def _final_safety_check(self, song: Dict) -> bool:
+        """ULTIMATE SAFETY CHECK - Final verification to avoid shorts/reels"""
+        title = song.get('title', '').lower()
+        url = song.get('url', '').lower() if song.get('url') else ''
+        description = song.get('description', '').lower() if song.get('description') else ''
+
+        # ABSOLUTELY FORBIDDEN - immediate rejection
+        forbidden_patterns = [
+            # Short video patterns
+            'short', 'reel', 'tiktok', 'instagram', 'facebook watch',
+            # Content that suggests non-music
+            'funny', 'meme', 'fail', 'cringe', 'reaction', 'challenge',
+            'dance challenge', 'trend', 'viral', 'asmr', 'storytime',
+            # Platform-specific content
+            'youtube shorts', 'yt shorts', 'shorts creator',
+            'instagram story', 'facebook story', 'snap story'
+        ]
+
+        for pattern in forbidden_patterns:
+            if pattern in title or pattern in url or pattern in description:
+                return False
+
+        # Check for suspiciously high view counts that might indicate viral content
+        # (This is optional - uncomment if you want to be extra cautious)
+        # view_count = song.get('viewCount', 0)
+        # if isinstance(view_count, int) and view_count > 100000000:  # 100M+ views
+        #     if any(viral_indicator in title for viral_indicator in ['meme', 'funny', 'viral']):
+        #         return False
+
+        return True
+
+    def _validate_location_relevance(self, song: Dict, location: str) -> bool:
+        """COMPREHENSIVE validation that the song is actually relevant to the specified location"""
+        if not location:
+            return True
+
+        title = song.get('title', '').lower()
+        description = song.get('description', '').lower() if song.get('description') else ''
+        channel = song.get('channel', '').lower() if song.get('channel') else ''
+        location_lower = location.lower()
+
+        # COMPREHENSIVE Bangladesh-specific keywords
+        bangla_keywords = [
+            # Basic location identifiers
+            'bangla', 'bengali', 'bangladesh', 'dhaka', 'dhakaiya',
+            # Bengali Unicode words
+            'বাংলা', 'বাংলাদেশ', 'ঢাকা', 'গান', 'গীতিকার', 'গানের',
+            # Classic Bangla artists
+            'habib', 'fuad', 'arnob', 'shironamhin', 'warfaze', 'artcell',
+            'black', 'nogorbobo', 'aurthohin', 'feedback', 'miles',
+            'feelings', 'proshno', 'akash', 'chirkut', 'shohoj',
+            'andrew kishore', 'runa laila', 'sabina yasmin',
+            'ayub bachchu', 'tahsan', 'hridoy khan', 'imran',
+            'minar', 'belal', 'balam', 'kiranchandra', 'pritam',
+            # Additional Bangla artists
+            'shakib al hasan', 'tahsan', 'elias', 'bappa mazumder',
+            'fa sumon', 'balam', 'nancy', 'kona', 'puja',
+            'asif akbar', 'babul', 'dipankar', 'subir nandi',
+            'abdul jabbar', 'fareq', 'mahmud', 'pooja',
+            # Modern Bangla artists
+            'shironamhin', 'arbovirus', 'crown', 'pentagon',
+            'dornik', 'avoidraf', 'sahariar', 'rafat',
+            # Bangla music terms
+            'bangla gaan', 'bangla music', 'bangla song',
+            'bengali song', 'bengali music', 'dhaka music',
+            'bangla band', 'bangla pop', 'bangla rock',
+            # Cultural terms
+            'pohela boishakh', 'noboborsho', 'durga puja',
+            'ekushey', 'vasha', 'shadhin', 'mukti'
+        ]
+
+        # Reject non-Bangla content explicitly
+        non_bangla_indicators = [
+            'punjabi', 'hindi', 'bollywood', 'tamil', 'telugu', 'marathi',
+            'punjab', 'mumbai', 'delhi', 'india', 'pakistan', 'karachi',
+            'sidhu moose wala', 'badfella', 'sardaari', 'dev lyrical',
+            'shakira waka', 'fifa world cup', 'refused', 'sweden'
+        ]
+
+        # REJECT any non-Bangla content
+        for bad_indicator in non_bangla_indicators:
+            if bad_indicator in title or bad_indicator in description or bad_indicator in channel:
+                return False
+
+        # Check if any location-specific keywords are present
+        location_in_content = (
+            location_lower in title or location_lower in description or location_lower in channel or
+            any(keyword in title for keyword in bangla_keywords) or
+            any(keyword in description for keyword in bangla_keywords) or
+            any(keyword in channel for keyword in bangla_keywords)
+        )
+
+        # Also check for Bengali text in title or description (Unicode check)
+        title_text = song.get('title', '')
+        description_text = song.get('description', '')
+        has_bengali_chars = (
+            any('\u0980' <= char <= '\u09FF' for char in title_text) or
+            any('\u0980' <= char <= '\u09FF' for char in description_text)
+        )
+
+        return location_in_content or has_bengali_chars
 
     def _emergency_query_variation(self, base_query: str) -> str:
         emergency_variations = [
@@ -145,8 +341,10 @@ class YouTubeAPI:
 
     def search_music(self, query: str, max_results: int = 999, max_retries: int = 5) -> List[Dict]:
         """
-        Smart, unlimited YouTube search for TheraMuse
-        - Dynamically fetches as many songs as the API returns
+        Smart YouTube search for TheraMuse - STRICTLY PRIORITIZES INDIVIDUAL SONGS
+        - First tries to find individual songs only
+        - Only falls back to playlists if NO songs found
+        - Strict filtering for shorts, reels, and short videos
         - Region/language aware
         - Deduplication and retry logic
         """
@@ -205,13 +403,15 @@ class YouTubeAPI:
                 response.raise_for_status()
                 all_results = response.json()
 
-                # deduplication ----------
-                unique_songs = []
+                # STEP 1: Filter for individual songs ONLY with ULTIMATE SAFETY CHECK
+                individual_songs = []
                 seen_titles = set()
                 for song in all_results:
                     video_id = self._get_video_id(song)
                     title = song.get('title', '').lower()
                     if not self._is_valid_music_result(song):
+                        continue
+                    if not self._final_safety_check(song):  # ULTIMATE SAFETY CHECK
                         continue
                     if not video_id or video_id in self._song_cache:
                         continue
@@ -224,12 +424,55 @@ class YouTubeAPI:
                     ):
                         continue
 
-                    unique_songs.append(song)
+                    individual_songs.append(song)
                     seen_titles.add(title)
                     self._song_cache.add(video_id)
 
-                print(f" Query '{query}' → '{varied_query}' | Fetched {len(all_results)} | Unique {len(unique_songs)} | region={region_hint}, lang={lang_hint}")
-                return unique_songs
+                print(f" Query '{query}' → '{varied_query}' | Fetched {len(all_results)} | Individual Songs {len(individual_songs)} | region={region_hint}, lang={lang_hint}")
+
+                # STEP 2: Return individual songs if found
+                if individual_songs:
+                    return individual_songs
+
+                # STEP 3: Only if NO individual songs found, try playlist fallback
+                print(f" No individual songs found for '{varied_query}', trying playlist fallback...")
+                if attempt == max_retries - 1:  # Only on final attempt
+                    playlist_query = self._fallback_playlist_query(query)
+                    print(f" Fallback playlist query: '{playlist_query}'")
+
+                    playlist_params = params.copy()
+                    playlist_params["query"] = playlist_query
+
+                    playlist_response = self.session.get(
+                        self.API_BASE_URL,
+                        params=playlist_params,
+                        timeout=(5, timeout)
+                    )
+                    playlist_response.raise_for_status()
+                    playlist_results = playlist_response.json()
+
+                    # Accept playlist results with relaxed filtering (but still exclude shorts/reels)
+                    playlist_songs = []
+                    for song in playlist_results:
+                        video_id = self._get_video_id(song)
+                        title = song.get('title', '').lower()
+
+                        # Basic filtering for playlists (allow longer content but still exclude shorts/reels)
+                        if any(short_marker in title for short_marker in ["#short", "shorts", "short video", "reel", "tiktok"]):
+                            continue
+                        if isinstance(song.get('url'), str) and 'shorts/' in song.get('url', '').lower():
+                            continue
+                        if not video_id or video_id in self._song_cache:
+                            continue
+
+                        playlist_songs.append(song)
+                        self._song_cache.add(video_id)
+
+                    if playlist_songs:
+                        print(f" Fallback: Found {len(playlist_songs)} playlist results")
+                        return playlist_songs
+
+                return []  # No results found
 
             except requests.exceptions.Timeout:
                 if attempt < max_retries - 1:
@@ -265,22 +508,23 @@ class YouTubeAPI:
         # Utilities
     
     def search_music_with_fallback(self, query: str, max_results: int = 1000) -> List[Dict]:
-        """Try multiple strategies for reliability"""
+        """Try multiple strategies for reliability - STRICTLY PRIORITIZES INDIVIDUAL SONGS"""
         print(f" Searching YouTube: '{query}' (max_results={max_results})")
         try:
+            # First attempt: Individual songs only
             result = self.search_music(query, max_results, max_retries=3)
             if result:
-                print(f" Found {len(result)} songs for '{query}'")
+                print(f" Found {len(result)} individual songs for '{query}'")
                 return result
             else:
-                print(f" No results for '{query}', trying simplified query")
+                print(f" No individual songs for '{query}', trying simplified query")
                 simplified_query = query.split()[0] if query.split() else query
                 simplified_result = self.search_music(simplified_query, max_results, max_retries=2)
                 if simplified_result:
                     print(f" Found {len(simplified_result)} songs for simplified '{simplified_query}'")
                     return simplified_result
                 else:
-                    print(f" No results for simplified query '{simplified_query}'")
+                    print(f" No individual songs found for any query variant")
                     return []
         except Exception as e:
             print(f" Search failed for '{query}': {e}")
@@ -563,6 +807,45 @@ class DementiaTherapy:
         print(f"{log_label}: {len(trimmed_songs)} songs")
         return len(trimmed_songs)
 
+    def _fetch_songs_for_query_with_validation(
+        self,
+        query: str,
+        songs_store: List[Dict],
+        target_count: int,
+        log_label: str,
+        location: str = None
+    ) -> int:
+        """
+        Enhanced helper to fetch songs with location validation
+        """
+        remaining = target_count - len(songs_store)
+        if remaining <= 0:
+            return 0
+
+        max_results = min(8, remaining)  # Fetch more since we'll filter
+
+        # Add small delay to avoid rate limiting
+        import time
+        time.sleep(0.5)
+
+        fetched_songs = self.youtube_api.search_music_with_fallback(query, max_results=max_results)
+
+        # Filter songs by location relevance
+        valid_songs = []
+        for song in fetched_songs:
+            if self._validate_location_relevance(song, location):
+                valid_songs.append(song)
+                if len(valid_songs) >= remaining:
+                    break
+
+        if valid_songs:
+            songs_store.extend(valid_songs)
+            print(f"{log_label}: {len(valid_songs)} location-relevant songs from {len(fetched_songs)} fetched")
+        else:
+            print(f"{log_label}: 0 location-relevant songs found for '{query}'")
+
+        return len(valid_songs)
+
     def _get_genres_for_trait_score(self, trait: str, score: float) -> List[str]:
         """Get genres for a specific trait and score"""
         trait_mapping = self.personality_mapping.BIG5_GENRE_MAPPING.get(trait, {})
@@ -647,7 +930,7 @@ class DementiaTherapy:
 
         # STEP 5A.4: Search YouTube for each category
 
-        # Category 1: Birthplace Country with favorite genres
+        # Category 1: Birthplace Country with location-validated results
         if birthplace_country:
             country_target = 5  # CHANGED from 20
             country_songs: List[Dict] = []
@@ -655,52 +938,66 @@ class DementiaTherapy:
             country_song_recommendations: List[str] = []
             favorite_genre_song_recommendations: List[str] = []
 
+            # IMPROVED: Better query strategy for country-specific results
             if favorite_genres:
                 for index, genre in enumerate(favorite_genres[:3], start=1):
-                    query = f"{nostalgia_start}-{nostalgia_end} {birthplace_country} {genre} song"
-                    added = self._fetch_songs_for_query(
+                    # Try multiple query variations for better results
+                    query_variations = [
+                        f"Bangla {genre} song {nostalgia_start}",
+                        f"Bengali {genre} {nostalgia_start}",
+                        f"Bangladesh {genre} song",
+                        f"Bangla {genre} song",
+                        f"{genre} bangla gaan"  # Bengali for "song"
+                    ]
+
+                    for query in query_variations:
+                        if len(country_songs) >= country_target:
+                            break
+                        added = self._fetch_songs_for_query_with_validation(
+                            query,
+                            country_songs,
+                            country_target,
+                            f" Birthplace Country ({birthplace_country} + {genre})",
+                            birthplace_country
+                        )
+                        if added:
+                            country_queries.append(query)
+                            country_song_recommendations.append(
+                                f"birthplace country song recommendation={query}"
+                            )
+                            favorite_genre_song_recommendations.append(
+                                f"favourite genre {index}={query}"
+                            )
+                        if len(country_songs) >= country_target:
+                            break
+
+            # If still need more songs, try general Bangla songs
+            if len(country_songs) < country_target:
+                general_queries = [
+                    f"Bangla song {nostalgia_start}",
+                    f"Bengali song {nostalgia_start}",
+                    f"Bangladesh hit song",
+                    f"Popular Bangla song",
+                    f"Bangla modern song"
+                ]
+
+                for query in general_queries:
+                    if len(country_songs) >= country_target:
+                        break
+                    added = self._fetch_songs_for_query_with_validation(
                         query,
                         country_songs,
                         country_target,
-                        f" Birthplace Country ({birthplace_country} + {genre})"
+                        f" Birthplace Country ({birthplace_country})",
+                        birthplace_country
                     )
                     if added:
                         country_queries.append(query)
                         country_song_recommendations.append(
-                            f"birthplace country song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_country} {genre} song"
+                            f"birthplace country song recommendation={query}"
                         )
-                        favorite_genre_song_recommendations.append(
-                            f"favourite genre {index}={nostalgia_start}-{nostalgia_end} {birthplace_country} {genre} song"
-                        )
-                    if len(country_songs) >= country_target:
-                        break
-
-                if len(country_songs) < country_target:
-                    general_query = f"{nostalgia_start}-{nostalgia_end} {birthplace_country} song"
-                    added = self._fetch_songs_for_query(
-                        general_query,
-                        country_songs,
-                        country_target,
-                        f" Birthplace Country ({birthplace_country})"
-                    )
-                    if added:
-                        country_queries.append(general_query)
-                        country_song_recommendations.append(
-                            f"birthplace country song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_country} song"
-                        )
-            else:
-                general_query = f"{nostalgia_start}-{nostalgia_end} {birthplace_country} song"
-                added = self._fetch_songs_for_query(
-                    general_query,
-                    country_songs,
-                    country_target,
-                    f" Birthplace Country ({birthplace_country})"
-                )
-                if added:
-                    country_queries.append(general_query)
-                    country_song_recommendations.append(
-                        f"birthplace country song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_country} song"
-                    )
+                        if len(country_songs) >= country_target:
+                            break
 
             recommendations["categories"]["birthplace_country"] = {
                 "query": country_queries if len(country_queries) > 1 else (country_queries[0] if country_queries else ""),
@@ -719,56 +1016,68 @@ class DementiaTherapy:
                     else favorite_genre_song_recommendations[0]
                 )
 
-        # Category 2: Birthplace City with favorite genres
+        # Category 2: Birthplace City with location-validated results
         if birthplace_city:
             city_target = 5  # CHANGED from 20
             city_songs: List[Dict] = []
             city_queries: List[str] = []
             city_song_recommendations: List[str] = []
 
+            # IMPROVED: Better query strategy for city-specific results
             if favorite_genres:
                 for genre in favorite_genres[:3]:
-                    query = f"{nostalgia_start}-{nostalgia_end} {birthplace_city} {genre} song"
-                    added = self._fetch_songs_for_query(
+                    # Try multiple query variations for better results
+                    query_variations = [
+                        f"Bangla {genre} song {nostalgia_start}",
+                        f"Bengali {genre} {nostalgia_start}",
+                        f"Dhaka {genre} song",
+                        f"Bangla {genre} song",
+                        f"{genre} bangla gaan"  # Bengali for "song"
+                    ]
+
+                    for query in query_variations:
+                        if len(city_songs) >= city_target:
+                            break
+                        added = self._fetch_songs_for_query_with_validation(
+                            query,
+                            city_songs,
+                            city_target,
+                            f"  Birthplace City ({birthplace_city} + {genre})",
+                            birthplace_city
+                        )
+                        if added:
+                            city_queries.append(query)
+                            city_song_recommendations.append(
+                                f"birthplace city song recommendation={query}"
+                            )
+                        if len(city_songs) >= city_target:
+                            break
+
+            # If still need more songs, try general Bangla songs
+            if len(city_songs) < city_target:
+                general_queries = [
+                    f"Bangla song {nostalgia_start}",
+                    f"Bengali song {nostalgia_start}",
+                    f"Dhaka city song",
+                    f"Bangla modern song",
+                    f"Popular Bangla song"
+                ]
+
+                for query in general_queries:
+                    if len(city_songs) >= city_target:
+                        break
+                    added = self._fetch_songs_for_query_with_validation(
                         query,
                         city_songs,
                         city_target,
-                        f"  Birthplace City ({birthplace_city} + {genre})"
+                        f"  Birthplace City ({birthplace_city})",
+                        birthplace_city
                     )
                     if added:
                         city_queries.append(query)
                         city_song_recommendations.append(
-                            f"birthplace city song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_city} {genre} song"
+                            f"birthplace city song recommendation={query}"
                         )
-                    if len(city_songs) >= city_target:
-                        break
-
-                if len(city_songs) < city_target:
-                    general_query = f"{nostalgia_start}-{nostalgia_end} {birthplace_city} song"
-                    added = self._fetch_songs_for_query(
-                        general_query,
-                        city_songs,
-                        city_target,
-                        f"  Birthplace City ({birthplace_city})"
-                    )
-                    if added:
-                        city_queries.append(general_query)
-                        city_song_recommendations.append(
-                            f"birthplace city song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_city} song"
-                        )
-            else:
-                general_query = f"{nostalgia_start}-{nostalgia_end} {birthplace_city} song"
-                added = self._fetch_songs_for_query(
-                    general_query,
-                    city_songs,
-                    city_target,
-                    f"  Birthplace City ({birthplace_city})"
-                )
-                if added:
-                    city_queries.append(general_query)
-                    city_song_recommendations.append(
-                        f"birthplace city song recommendation={nostalgia_start}-{nostalgia_end} {birthplace_city} song"
-                    )
 
             recommendations["categories"]["birthplace_city"] = {
                 "query": city_queries if len(city_queries) > 1 else (city_queries[0] if city_queries else ""),
@@ -1479,54 +1788,15 @@ class DatabaseManager:
 
     def __init__(self, db_path: str = "theramuse.db"):
         """Initialize database connection and create tables if needed"""
-        import tempfile, os, sqlite3
-
-        # Streamlit Cloud detection - use in-memory database as primary fallback
-        is_streamlit_cloud = (
-            os.environ.get('STREAMLIT_SERVER_MODE') == 'cloud' or
-            os.environ.get('VERCEL') == '1' or
-            not os.access(os.path.expanduser("~"), os.W_OK)
-        )
-
-        if is_streamlit_cloud:
-            print("🌐 Streamlit Cloud detected - using in-memory database")
-            self.db_path = ":memory:"
-        else:
-            try:
-                # Local persistent folder (use ~/.theramuserx_data if writable)
-                base_dir = os.path.join(os.path.expanduser("~"), ".theramuserx_data")
-                os.makedirs(base_dir, exist_ok=True)
-                os.chmod(base_dir, 0o777)
-                db_file = os.path.join(base_dir, db_path)
-
-                # Test write permission
-                with open(db_file, "a"):
-                    pass
-
-                self.db_path = db_file
-                print(f"📁 Using persistent database: {self.db_path}")
-
-            except Exception as e:
-                print(f"⚠️ Cannot create persistent database: {e}")
-                print("🌐 Falling back to in-memory database")
-                self.db_path = ":memory:"
-
+        self.db_path = db_path
         self.conn = None
         self.connect()
         self.create_tables()
 
     def connect(self):
-        """Establish SQLite connection safely"""
-        import sqlite3
-        try:
-            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            self.conn.row_factory = sqlite3.Row  # allow dict-like access
-            print(f"✅ Connected to DB at {self.db_path}")
-        except sqlite3.Error as e:
-            print(f"[ERROR] Failed to connect: {e}. Falling back to :memory:")
-            self.db_path = ":memory:"
-            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            self.conn.row_factory = sqlite3.Row
+        """Establish database connection"""
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
 
     def create_tables(self):
         """Create all necessary tables"""
@@ -1761,27 +2031,7 @@ class TheraMuse:
         print("Initializing TheraMuse v9.0 - Synchronized Build")
         print(""*30 + "\n")
 
-        # Set up proper model directory structure
-        from pathlib import Path
-        import tempfile
-        import os
-
-        try:
-            # Try to use user data directory for persistence
-            models_dir = Path.home() / ".theramuserx_data" / "models"
-            models_dir.mkdir(parents=True, exist_ok=True)
-            # Test write permission
-            test_file = models_dir / "test_write.txt"
-            with open(test_file, "w") as f:
-                f.write("test")
-            test_file.unlink()
-            self.model_path = models_dir / model_path
-        except Exception:
-            # Fall back to temp directory
-            models_dir = Path(tempfile.gettempdir())
-            self.model_path = models_dir / model_path
-
-        print(f"Model path set to: {self.model_path}")
+        self.model_path = model_path
         self.db = DatabaseManager(db_path)
 
         # Initialize therapy modules
@@ -1908,30 +2158,14 @@ class TheraMuse:
         return recommendations
 
     def _export_recommendations_json(self, recommendations: Dict) -> Optional[Path]:
-        """Export recommendations to a timestamped JSON file.
+        """Export recommendations to a timestamped JSON file at repo root.
 
         Filename format: theramuse_recommendations_{condition}_{YYYYmmddHHMMSS}_{YYYYmmdd}.json
         Returns the written Path on success, or None on failure.
         """
-        import tempfile
-        import os
-
-        # Use temp directory for Streamlit Cloud compatibility
-        base_dir = Path(tempfile.gettempdir())
-
-        # Try to use user data directory first for persistence
-        try:
-            user_data_dir = Path.home() / ".theramuserx_data"
-            user_data_dir.mkdir(parents=True, exist_ok=True)
-            # Test write permission
-            test_file = user_data_dir / "test_write.txt"
-            with open(test_file, "w") as f:
-                f.write("test")
-            test_file.unlink()
-            base_dir = user_data_dir
-        except Exception:
-            # Fall back to temp directory
-            base_dir = Path(tempfile.gettempdir())
+        # Resolve repo root (parent of this 'theramuse_app' dir)
+        base_dir = Path(__file__).resolve().parents[1]
+        base_dir.mkdir(parents=True, exist_ok=True)
 
         condition = recommendations.get("condition", "unknown")
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -1943,14 +2177,11 @@ class TheraMuse:
         if "generated_at" not in recommendations:
             recommendations["generated_at"] = datetime.now().isoformat()
 
-        try:
-            with open(fpath, "w", encoding="utf-8") as f:
-                json.dump(recommendations, f, ensure_ascii=False, indent=2)
-            print(f" Exported recommendations JSON → {fpath}")
-            return fpath
-        except Exception as e:
-            print(f"[ERROR] Failed to export recommendations: {e}")
-            return None
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(recommendations, f, ensure_ascii=False, indent=2)
+
+        print(f" Exported recommendations JSON → {fpath}")
+        return fpath
 
     def record_feedback(self, patient_id: str, session_id: str, condition: str,
                        song: Dict, feedback_type: str, patient_info: Dict = None):
@@ -2138,9 +2369,6 @@ class TheraMuse:
     def _save_model(self):
         """STEP 13: Save current model state"""
         try:
-            # Ensure directory exists
-            self.model_path.parent.mkdir(parents=True, exist_ok=True)
-
             model_data = {
                 "bandits": self.bandits,
                 "exploration_rate": self.exploration_rate,
