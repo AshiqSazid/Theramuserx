@@ -52,9 +52,9 @@ def load_color_schema():
 
 # Import from main.py
 from ml import (
-    TheraMuse, 
-    DementiaTherapy, 
-    DownSyndromeTherapy, 
+    TheraMuse,
+    DementiaTherapy,
+    DownSyndromeTherapy,
     ADHDTherapy,
     YouTubeAPI,
     BangladeshiGenerationalMatrix,
@@ -62,6 +62,11 @@ from ml import (
     LinearThompsonSampling,
     DatabaseManager
 )
+
+@st.cache_resource
+def get_theramuse():
+    """Get cached TheraMuse instance"""
+    return TheraMuse()
 
 # JavaScript to prevent Enter key from submitting forms in text input fields
 st.markdown("""
@@ -1985,10 +1990,12 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
     """, unsafe_allow_html=True)
     
     # Get TheraMuse instance
-    if 'theramuse' not in st.session_state:
-        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
-
-    theramuse = st.session_state.theramuse
+    try:
+        theramuse = get_theramuse()
+        st.success("Database connected successfully!")
+    except Exception as e:
+        st.error(f"Database connection error: {e}")
+        st.stop()
     
     # Display by category
     category_labels = {
@@ -2346,10 +2353,7 @@ def page_intake():
             # Initialize TheraMuse
             with st.spinner(f" TheramuseRX is generating personalized recommendations "):
                 try:
-                    if 'theramuse' not in st.session_state:
-                        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
-
-                    theramuse = st.session_state.theramuse
+                    theramuse = get_theramuse()
 
                     # Get recommendations
                     recommendations = theramuse.get_therapy_recommendations(
@@ -2476,11 +2480,19 @@ def page_analytics():
     </div>
     """, unsafe_allow_html=True)
     
-    if 'theramuse' not in st.session_state:
-        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+    try:
+        theramuse = get_theramuse()
+        st.success("Database connected successfully!")
+    except Exception as e:
+        st.error(f"Database connection error: {e}")
+        st.stop()
 
-    theramuse = st.session_state.theramuse
-    analytics = theramuse.get_analytics()
+    # Get analytics with error handling
+    try:
+        analytics = theramuse.get_analytics()
+    except Exception as e:
+        st.error(f"Failed to load analytics: {e}")
+        analytics = {}
     
     # Top metrics
     col1, col2, col3 = st.columns(3)
@@ -2540,13 +2552,16 @@ def page_analytics():
     
     # Cache management
     st.markdown("###  Cache Management")
-    cache_status = theramuse.get_youtube_cache_status()
-    st.metric("YouTube Cache Size", cache_status.get('cache_size', 0))
-    
-    if st.button("Clear YouTube Cache", type="secondary"):
-        theramuse.clear_youtube_cache()
-        st.success(" YouTube cache cleared!")
-        st.snow()
+    try:
+        cache_status = theramuse.get_youtube_cache_status()
+        st.metric("YouTube Cache Size", cache_status.get('cache_size', 0))
+
+        if st.button("Clear YouTube Cache", type="secondary"):
+            theramuse.clear_youtube_cache()
+            st.success(" YouTube cache cleared!")
+            st.snow()
+    except Exception as e:
+        st.error(f"Cache management error: {e}")
 
 def page_research_evidence():
     """Research Evidence page with comprehensive scientific literature"""
