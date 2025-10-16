@@ -1,7 +1,3 @@
-"""
-ml.py
-"""
-
 import requests
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime, timedelta
@@ -29,7 +25,7 @@ class YouTubeAPI:
     - Unlimited result fetch with deduplication
     """
 
-    API_BASE_URL = "http://20.55.42.110:8080/api/youtube/search"
+    API_BASE_URL = "https://api.rx.theramuse.net/api/youtube/search"
 
     def __init__(self):
         self.session = requests.Session()
@@ -483,24 +479,54 @@ class DementiaTherapy:
         self.personality_mapping = BigFivePersonalityMapping()
         self.therapeutic_queries = {
             "difficulty_sleeping": [
-                "estas sonne song",
+                "estas tonne song",
                 "432 hz music",
                 "hypnosis music",
                 "829 hz music",
+                "Pere Andre Farah",
                 "Classical Music to Make Your Brain Shut Up",
-                "barber beat music"
-                "Vaporwave music"
+                "barber beat music",
+                "Vaporwave music",
+                "Khruangbin",
+                "Hermanos Gutiérrez"
             ],
             "trouble_remembering": [
                 "estas tonne song",
                 "Classical Music to Make Your Brain Shut Up",
-                "829 hz music"
+                "829 hz music",
+                "Khruangbin",
+                "Hermanos Gutiérrez",
+                "Pere Andre Farah"
+            ],
+            "forgets_everyday_things": [
+                "estas tonne song",
+                "Classical Music to Make Your Brain Shut Up",
+                "829 hz music",
+                "Khruangbin",
+                "Hermanos Gutiérrez",
+                "Pere Andre Farah"
+            ],
+            "difficulty_recalling_old_memories": [
+                "estas tonne song",
+                "Classical Music to Make Your Brain Shut Up",
+                "829 hz music",
+                "Khruangbin",
+                "Hermanos Gutiérrez",
+                "Pere Andre Farah"
+            ],
+            "memory_worse_than_year_ago": [
+                "estas tonne song",
+                "Classical Music to Make Your Brain Shut Up",
+                "829 hz music",
+                "Khruangbin",
+                "Hermanos Gutiérrez",
+                "Pere Andre Farah"
             ],
             "visited_mental_health_professional": [
-                "relax saxophone"
+                "relax saxophone",
+                "Khruangbin"
             ],
-            "memory_issues": [  # For various memory-related issues
-                "dementia",
+            "memory_issues": [  # For various memory-related issues",
                 "memory enhancement music",
                 "cognitive therapy music"
             ]
@@ -523,6 +549,11 @@ class DementiaTherapy:
 
         # CHANGED: max 5 instead of 10
         max_results = min(5, remaining)
+
+        # Add small delay to avoid rate limiting
+        import time
+        time.sleep(0.5)
+
         fetched_songs = self.youtube_api.search_music_with_fallback(query, max_results=max_results)
         trimmed_songs = fetched_songs[:remaining]
 
@@ -583,14 +614,17 @@ class DementiaTherapy:
         natural_elements = patient_info.get("natural_elements", [])
         big5_scores = patient_info.get("big5_scores", {})
 
-        # Health indicators
+        # Health indicators - Memory & Sleep Assessment
         difficulty_sleeping = patient_info.get("difficulty_sleeping", False)
         trouble_remembering = patient_info.get("trouble_remembering", False)
+        forgets_everyday_things = patient_info.get("forgets_everyday_things", False)
+        difficulty_recalling_old_memories = patient_info.get("difficulty_recalling_old_memories", False)
+        memory_worse_than_year_ago = patient_info.get("memory_worse_than_year_ago", False)
         visited_mental_health = patient_info.get("visited_mental_health_professional", False)
         memory_issues = any([
-            patient_info.get("forgets_everyday_things", False),
-            patient_info.get("difficulty_recalling_old_memories", False),
-            patient_info.get("memory_worse_than_year_ago", False)
+            forgets_everyday_things,
+            difficulty_recalling_old_memories,
+            memory_worse_than_year_ago
         ])
 
         # STEP 5A.2: Calculate nostalgia window
@@ -959,87 +993,63 @@ class DementiaTherapy:
             }
             print(f" Favorite Musician ({favorite_musician}): {len(musician_songs)} total songs")
 
-        # Category 8: Therapeutic (STEP 5A.6)
-        therapeutic_target = 5  # CHANGED from 20
-        therapeutic_songs: List[Dict] = []
-        therapeutic_queries_used: List[str] = []
+        # Category 8: Memory & Sleep Assessment - Individual Conditions
+        # Each condition gets exactly 5 songs if true, no songs if false
 
-        if difficulty_sleeping and len(therapeutic_songs) < therapeutic_target:
-            added_any = False
-            for query in self.therapeutic_queries["difficulty_sleeping"]:
-                added = self._fetch_songs_for_query(
-                    query,
-                    therapeutic_songs,
-                    therapeutic_target,
-                    f" Sleep Issues ({query})"
-                )
-                if added:
-                    therapeutic_queries_used.append(query)
-                    added_any = True
-                if len(therapeutic_songs) >= therapeutic_target:
-                    break
-            if added_any:
-                print(" Sleep Issues: Added therapeutic songs")
+        therapeutic_conditions = {
+            "difficulty_sleeping": difficulty_sleeping,
+            "trouble_remembering": trouble_remembering,
+            "forgets_everyday_things": forgets_everyday_things,
+            "difficulty_recalling_old_memories": difficulty_recalling_old_memories,
+            "memory_worse_than_year_ago": memory_worse_than_year_ago,
+            "visited_mental_health_professional": visited_mental_health
+        }
 
-        if trouble_remembering and len(therapeutic_songs) < therapeutic_target:
-            added_any = False
-            for query in self.therapeutic_queries["trouble_remembering"]:
-                added = self._fetch_songs_for_query(
-                    query,
-                    therapeutic_songs,
-                    therapeutic_target,
-                    f" Memory Issues ({query})"
-                )
-                if added:
-                    therapeutic_queries_used.append(query)
-                    added_any = True
-                if len(therapeutic_songs) >= therapeutic_target:
-                    break
-            if added_any:
-                print(" Memory Issues: Added therapeutic songs")
+        for condition_key, is_true in therapeutic_conditions.items():
+            if is_true:
+                # This condition is true, add exactly 5 songs
+                condition_songs: List[Dict] = []
+                condition_queries_used: List[str] = []
 
-        if visited_mental_health and len(therapeutic_songs) < therapeutic_target:
-            added_any = False
-            for query in self.therapeutic_queries["visited_mental_health_professional"]:
-                added = self._fetch_songs_for_query(
-                    query,
-                    therapeutic_songs,
-                    therapeutic_target,
-                    f" Mental Health Support ({query})"
-                )
-                if added:
-                    therapeutic_queries_used.append(query)
-                    added_any = True
-                if len(therapeutic_songs) >= therapeutic_target:
-                    break
-            if added_any:
-                print(" Mental Health Support: Added therapeutic songs")
+                # Get songs from the specified artists for this condition
+                for query in self.therapeutic_queries[condition_key]:
+                    added = self._fetch_songs_for_query(
+                        query,
+                        condition_songs,
+                        5,  # Exactly 5 songs per condition
+                        f" {condition_key.replace('_', ' ').title()} ({query})"
+                    )
+                    if added:
+                        condition_queries_used.append(query)
+                    if len(condition_songs) >= 5:
+                        break
 
-        if memory_issues and len(therapeutic_songs) < therapeutic_target:
-            added_any = False
-            for query in self.therapeutic_queries["memory_issues"]:
-                added = self._fetch_songs_for_query(
-                    query,
-                    therapeutic_songs,
-                    therapeutic_target,
-                    f" Memory Enhancement ({query})"
-                )
-                if added:
-                    therapeutic_queries_used.append(query)
-                    added_any = True
-                if len(therapeutic_songs) >= therapeutic_target:
-                    break
-            if added_any:
-                print(" Memory Enhancement: Added therapeutic songs")
+                # If no songs found, create fallback songs with search URLs
+                if not condition_songs:
+                    category_name = condition_key.replace('_', ' ').title()
+                    for query in self.therapeutic_queries[condition_key][:5]:
+                        fallback_song = {
+                            "title": f"Therapeutic Music for {category_name}",
+                            "url": f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}",
+                            "channel": "TheraMuse",
+                            "description": f"Recommended therapeutic music for {category_name.lower()}. Click to explore more options.",
+                            "fallback": True
+                        }
+                        condition_songs.append(fallback_song)
+                    condition_queries_used = [self.therapeutic_queries[condition_key][0]]
 
-        if therapeutic_songs:
-            recommendations["categories"]["therapeutic"] = {
-                "query": therapeutic_queries_used if len(therapeutic_queries_used) > 1 else (
-                    therapeutic_queries_used[0] if therapeutic_queries_used else ""
-                ),
-                "songs": therapeutic_songs,
-                "count": len(therapeutic_songs)
-            }
+                # Add this condition as a separate category (always add if condition is true)
+                category_name = condition_key.replace('_', ' ').title()
+                recommendations["categories"][condition_key] = {
+                    "query": condition_queries_used[0] if condition_queries_used else "",
+                    "songs": condition_songs[:5],  # Ensure exactly 5 songs
+                    "count": len(condition_songs[:5]),
+                    "condition": condition_key
+                }
+                print(f" {category_name}: {len(condition_songs[:5])} songs added")
+            else:
+                # Condition is false, no songs suggested
+                print(f" {condition_key.replace('_', ' ').title()}: False - no songs suggested")
 
         # Category 9: Personality-Based (STEP 5A.7)
         if big5_scores:
@@ -1148,12 +1158,21 @@ class DownSyndromeTherapy:
 
     def __init__(self):
         self.youtube_api = YouTubeAPI()
-        self.primary_query = "Autism Calming Sensory Music"
+        self.primary_queries = [
+            "Theta (4–8 Hz) brainwave entrainment",
+            "40 Hz Stimulation music",
+            "432 Hz Music",
+            "528 Hz Music",
+            "40–60 BPM rhythm",
+            "sensory integration music therapy",
+            "relaxing music for autism children"
+        ]
+
 
     def get_down_syndrome_recommendations(self, patient_info: Dict = None) -> Dict:
         """
         STEP 5B: Main Down Syndrome Therapy Recommendation Function
-        Simple approach: Focus on calming sensory music regardless of inputs
+        Focus on calming sensory music with therapeutic frequencies and brainwave entrainment
         """
         print("\n" + "="*60)
         print(" Generating Down Syndrome Therapy Recommendations...")
@@ -1162,76 +1181,96 @@ class DownSyndromeTherapy:
         recommendations = {
             "patient_context": {
                 "condition": "down_syndrome",
-                "therapy_focus": "calming sensory music"
+                "therapy_focus": "calming sensory music with theta waves and therapeutic frequencies"
             },
             "categories": {}
         }
 
-        # Primary calming sensory music recommendations (50 songs)
-        print(f"🎵 Searching for calming sensory music...")
-        calming_songs = []
+        # Process each primary query to ensure we get songs from each one
+        import time
 
-        # Get 50 songs by making multiple API calls if needed
-        total_needed = 50
-        collected = 0
+        for i, query in enumerate(self.primary_queries, 1):
+            print(f"🎵 [{i}/{len(self.primary_queries)}] Searching for: {query}")
 
-        while collected < total_needed:
-            batch_size = min(10, total_needed - collected)
-            songs = self.youtube_api.search_music_with_fallback(self.primary_query, max_results=batch_size)
+            # Add delay to avoid rate limiting
+            time.sleep(0.5)
 
+            songs = self.youtube_api.search_music_with_fallback(query, max_results=5)
+
+            # If no songs found, create fallback songs
             if not songs:
-                print(f" No more songs available from API")
-                break
+                print(f"   No songs found, creating fallback for: {query}")
+                fallback_songs = []
+                for j in range(5):
+                    fallback_song = {
+                        "title": f"Down Syndrome Therapy - {query} (Track {j+1})",
+                        "url": f"https://www.youtube.com/results?search_query={query.replace(' ', '+').replace('–', '+')}",
+                        "channel": "TheraMuse Down Syndrome Therapy",
+                        "description": f"Calming sensory music for Down Syndrome therapy. Based on {query}. Click to explore more options.",
+                        "fallback": True
+                    }
+                    fallback_songs.append(fallback_song)
+                songs = fallback_songs
+                print(f"   Created {len(songs)} fallback songs")
+            else:
+                print(f"   Found {len(songs)} songs")
 
-            calming_songs.extend(songs)
-            collected += len(songs)
-            print(f"   Batch collected: {len(songs)} songs (Total: {collected}/{total_needed})")
+            # Create category name from query (clean and readable)
+            category_name = self._create_down_syndrome_category_name(query)
 
-        recommendations["categories"]["calming_sensory"] = {
-            "query": self.primary_query,
-            "songs": calming_songs,
-            "count": len(calming_songs),
-            "description": "Calming sensory music for children with Down Syndrome"
-        }
-
-        # If we still need more songs, try additional queries
-        if len(calming_songs) < 50:
-            additional_queries = [
-                "calming music for special needs children",
-                "sensory integration music therapy",
-                "relaxing music for autism children",
-                "peaceful classroom background music",
-                "therapeutic music for developmental disabilities"
-            ]
-
-            additional_songs = []
-            for query in additional_queries:
-                songs = self.youtube_api.search_music_with_fallback(query, max_results=10)
-                additional_songs.extend(songs)
-                print(f"🎵 Additional query '{query}': {len(songs)} songs")
-
-                if len(calming_songs) + len(additional_songs) >= 50:
-                    break
-
-            if additional_songs:
-                recommendations["categories"]["additional_calm"] = {
-                    "query": additional_queries,
-                    "songs": additional_songs,
-                    "count": len(additional_songs),
-                    "description": "Additional calming music for comprehensive therapy"
-                }
+            # Add to recommendations
+            recommendations["categories"][category_name] = {
+                "query": query,
+                "songs": songs,
+                "count": len(songs),
+                "description": f"Down Syndrome therapy music: {query}",
+                "category_type": "primary_query"
+            }
 
         # Calculate total songs
-        total_songs = len(calming_songs) + len(recommendations["categories"].get("additional_calm", {}).get("songs", []))
+        total_songs = sum(category["count"] for category in recommendations["categories"].values())
         recommendations["total_songs"] = total_songs
-        recommendations["method"] = "down_syndrome_therapy_v1"
+        recommendations["method"] = "down_syndrome_therapy_v2"
         recommendations["generated_at"] = datetime.now().isoformat()
 
         print(f"\n Generated {total_songs} total recommendations for Down Syndrome therapy")
-        print(f" Focus: Calming sensory music")
+        print(f" Focus: All primary Down Syndrome queries processed with guaranteed songs")
+        print(f"Categories: {list(recommendations['categories'].keys())}")
         print("="*60 + "\n")
 
         return recommendations
+
+    def _create_down_syndrome_category_name(self, query: str) -> str:
+        """Create a clean category name from the query"""
+        # Clean up the query to make a good category name
+        category_name = query.lower()
+
+        # Common replacements for cleaner names
+        replacements = {
+            "theta (4–8 hz) brainwave entrainment": "theta_brainwave_4_8hz",
+            "40 hz stimulation music": "stimulation_40hz",
+            "432 hz music": "432hz_healing",
+            "528 hz music": "528hz_miracle",
+            "40–60 bpm rhythm": "rhythm_40_60bpm",
+            "sensory integration music therapy": "sensory_integration",
+            "relaxing music for autism children": "autism_relaxing"
+        }
+
+        # Apply replacements
+        for old, new in replacements.items():
+            if old.lower() in category_name:
+                category_name = new
+                break
+
+        # Remove special characters and replace with underscores
+        import re
+        category_name = re.sub(r'[^a-z0-9_]', '_', category_name)
+        # Remove multiple underscores
+        category_name = re.sub(r'_+', '_', category_name)
+        # Remove leading/trailing underscores
+        category_name = category_name.strip('_')
+
+        return category_name
 
 
 # STEP 5C: ADHD PATH 
@@ -1245,17 +1284,26 @@ class ADHDTherapy:
     def __init__(self):
         self.youtube_api = YouTubeAPI()
         self.adhd_queries = [
-            "adhd music for concentration",
+            "Alpha range (8–12 Hz) brainwave entrainment",
+            "40 Hz (Gamma–Beta border)",
             "3333 Hz - Pure Binaural Beat Frequency",
             "binaural beats focus 40 hz",
-            "ADHD Relief Music: Studying Music for Better Concentration and Focus, Study Music",
-            "Autism Calming Sensory Music"
+            "barber beat music",
+            "Khruangbin",
+            "Vaporwave music",
+            "Hermanos Gutiérrez",
+            "estas tonne song",            
+            "432 hz music",
+            "829 hz music",
+            "Pere Andre Farah",
+            "Classical Music to Make Your Brain Shut Up",
+            "Indian Classical – Raga Desh / Raga Bhairavi"
         ]
 
     def get_adhd_recommendations(self, patient_info: Dict = None) -> Dict:
         """
         STEP 5C: Main ADHD Therapy Recommendation Function
-        Focus on concentration and focus music regardless of specific inputs
+        Focus on concentration and focus music with binaural beats and therapeutic frequencies
         """
         print("\n" + "="*60)
         print(" Generating ADHD Therapy Recommendations...")
@@ -1264,110 +1312,103 @@ class ADHDTherapy:
         recommendations = {
             "patient_context": {
                 "condition": "adhd",
-                "therapy_focus": "concentration, focus, and attention enhancement"
+                "therapy_focus": "concentration, focus, attention enhancement with binaural beats"
             },
             "categories": {}
         }
 
-        all_songs = []
-        query_results = {}
+        # Process each primary query to ensure we get songs from each one
+        import time
 
-        # Get songs for each ADHD-specific query
-        for query in self.adhd_queries:
-            print(f"🎵 Searching for: {query}")
-            songs = self.youtube_api.search_music_with_fallback(query, max_results=10)  # 10 songs per query = 50 total
-            all_songs.extend(songs)
-            query_results[query] = {
+        for i, query in enumerate(self.adhd_queries, 1):
+            print(f"🎵 [{i}/{len(self.adhd_queries)}] Searching for: {query}")
+
+            # Add delay to avoid rate limiting
+            time.sleep(0.5)
+
+            songs = self.youtube_api.search_music_with_fallback(query, max_results=5)
+
+            # If no songs found, create fallback songs
+            if not songs:
+                print(f"   No songs found, creating fallback for: {query}")
+                fallback_songs = []
+                for j in range(5):
+                    fallback_song = {
+                        "title": f"ADHD Therapy Music - {query} (Track {j+1})",
+                        "url": f"https://www.youtube.com/results?search_query={query.replace(' ', '+').replace('–', '+')}",
+                        "channel": "TheraMuse ADHD Therapy",
+                        "description": f"Therapeutic music for ADHD concentration and focus. Based on {query}. Click to explore more options.",
+                        "fallback": True
+                    }
+                    fallback_songs.append(fallback_song)
+                songs = fallback_songs
+                print(f"   Created {len(songs)} fallback songs")
+            else:
+                print(f"   Found {len(songs)} songs")
+
+            # Create category name from query (clean and readable)
+            category_name = self._create_category_name_from_query(query)
+
+            # Add to recommendations
+            recommendations["categories"][category_name] = {
+                "query": query,
                 "songs": songs,
-                "count": len(songs)
+                "count": len(songs),
+                "description": f"ADHD therapy music: {query}",
+                "category_type": "primary_query"
             }
-            print(f" Found {len(songs)} songs")
-
-        # Organize songs by categories
-        recommendations["categories"] = {}
-
-        # Category 1: ADHD Concentration Music
-        concentration_query = "adhd music for concentration"
-        recommendations["categories"]["concentration"] = {
-            "query": concentration_query,
-            "songs": query_results[concentration_query]["songs"],
-            "count": query_results[concentration_query]["count"],
-            "description": "Music specifically designed for ADHD concentration"
-        }
-
-        # Category 2: Binaural Beats
-        binaural_songs = []
-        binaural_queries = [
-            "3333 Hz - Pure Binaural Beat Frequency",
-            "binaural beats focus 40 hz"
-        ]
-        for query in binaural_queries:
-            binaural_songs.extend(query_results[query]["songs"])
-
-        recommendations["categories"]["binaural_beats"] = {
-            "query": binaural_queries,
-            "songs": binaural_songs,
-            "count": len(binaural_songs),
-            "description": "Binaural beats for focus and concentration"
-        }
-
-        # Category 3: ADHD Relief and Study Music
-        relief_query = "ADHD Relief Music: Studying Music for Better Concentration and Focus, Study Music"
-        recommendations["categories"]["relief_study"] = {
-            "query": relief_query,
-            "songs": query_results[relief_query]["songs"],
-            "count": query_results[relief_query]["count"],
-            "description": "ADHD relief music for studying and better concentration"
-        }
-
-        # Category 4: Calming Sensory Music
-        sensory_query = "Autism Calming Sensory Music"
-        recommendations["categories"]["calming_sensory"] = {
-            "query": sensory_query,
-            "songs": query_results[sensory_query]["songs"],
-            "count": query_results[sensory_query]["count"],
-            "description": "Calming sensory music for ADHD and autism"
-        }
-
-        # If we need more songs to reach 50, add additional focus music
-        if len(all_songs) < 50:
-            additional_queries = [
-                "focus music for studying",
-                "concentration music for work",
-                "adhd brain music",
-                "attention training music",
-                "study music for focus"
-            ]
-
-            additional_songs = []
-            for query in additional_queries:
-                songs = self.youtube_api.search_music_with_fallback(query, max_results=10)
-                additional_songs.extend(songs)
-                print(f"🎵 Additional query '{query}': {len(songs)} songs")
-
-                if len(all_songs) + len(additional_songs) >= 50:
-                    break
-
-            if additional_songs:
-                recommendations["categories"]["additional_focus"] = {
-                    "query": additional_queries,
-                    "songs": additional_songs,
-                    "count": len(additional_songs),
-                    "description": "Additional focus and concentration music"
-                }
 
         # Calculate total songs
         total_songs = sum(category["count"] for category in recommendations["categories"].values())
         recommendations["total_songs"] = total_songs
-        recommendations["method"] = "adhd_therapy_v1"
+        recommendations["method"] = "adhd_therapy_v2"
         recommendations["generated_at"] = datetime.now().isoformat()
 
         print(f"\n Generated {total_songs} total recommendations for ADHD therapy")
-        print(f" Focus: Concentration, binaural beats, and focus enhancement")
+        print(f" Focus: All primary ADHD queries processed with guaranteed songs")
         print(f"Categories: {list(recommendations['categories'].keys())}")
         print("="*60 + "\n")
 
         return recommendations
+
+    def _create_category_name_from_query(self, query: str) -> str:
+        """Create a clean category name from the query"""
+        # Clean up the query to make a good category name
+        category_name = query.lower()
+
+        # Common replacements for cleaner names
+        replacements = {
+            "alpha range (8–12 hz) brainwave entrainment": "alpha_brainwave_entrainment",
+            "40 hz (gamma–beta border)": "gamma_beta_border_40hz",
+            "3333 hz - pure binaural beat frequency": "pure_binaural_3333hz",
+            "binaural beats focus 40 hz": "binaural_focus_40hz",
+            "barber beat music": "barber_beat_music",
+            "khruangbin": "khruangbin_music",
+            "vaporwave music": "vaporwave_focus",
+            "hermanos gutiérrez": "hermanos_gutierrez",
+            "estas tonne song": "estas_tonne_guitar",
+            "432 hz music": "432hz_healing",
+            "829 hz music": "829hz_therapy",
+            "pere andre farah": "pere_andre_farah",
+            "classical music to make your brain shut up": "classical_brain_focus",
+            "indian classical – raga desh / raga bhairavi": "indian_classical_ragas"
+        }
+
+        # Apply replacements
+        for old, new in replacements.items():
+            if old.lower() in category_name:
+                category_name = new
+                break
+
+        # Remove special characters and replace with underscores
+        import re
+        category_name = re.sub(r'[^a-z0-9_]', '_', category_name)
+        # Remove multiple underscores
+        category_name = re.sub(r'_+', '_', category_name)
+        # Remove leading/trailing underscores
+        category_name = category_name.strip('_')
+
+        return category_name
 
 
 # STEP 7: THOMPSON SAMPLING INTEGRATION 

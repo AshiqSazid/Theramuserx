@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -61,6 +62,78 @@ from ml import (
     LinearThompsonSampling,
     DatabaseManager
 )
+
+# JavaScript to prevent Enter key from submitting forms in text input fields
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to prevent Enter key submission in text inputs
+    function preventEnterSubmission() {
+        // Get all text input elements
+        const textInputs = document.querySelectorAll('input[type="text"]');
+
+        textInputs.forEach(function(input) {
+            // Remove existing event listeners to avoid duplicates
+            input.removeEventListener('keydown', preventEnterHandler);
+
+            // Add new event listener
+            input.addEventListener('keydown', preventEnterHandler);
+        });
+    }
+
+    function preventEnterHandler(event) {
+        // Check if the key pressed is Enter
+        if (event.key === 'Enter' || event.keyCode === 13) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Move focus to the next element or blur (lose focus)
+            // This simulates typical "Tab" behavior when Enter is pressed
+            const formElements = Array.from(document.querySelectorAll('input, select, button, textarea'));
+            const currentIndex = formElements.indexOf(event.target);
+
+            if (currentIndex !== -1 && currentIndex < formElements.length - 1) {
+                // Try to focus on the next form element
+                const nextElement = formElements[currentIndex + 1];
+                if (nextElement && nextElement.type !== 'submit') {
+                    nextElement.focus();
+                } else {
+                    // If next element is submit button, just blur current input
+                    event.target.blur();
+                }
+            } else {
+                // If no next element, just blur current input
+                event.target.blur();
+            }
+
+            return false;
+        }
+    }
+
+    // Initial setup
+    preventEnterSubmission();
+
+    // Set up a MutationObserver to handle dynamically added elements
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                preventEnterSubmission();
+            }
+        });
+    });
+
+    // Start observing the document for changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    // Also run periodically as a fallback
+    setInterval(preventEnterSubmission, 1000);
+});
+</script>
+""", unsafe_allow_html=True)
 
 # PAGE CONFIG (MUST BE FIRST STREAMLIT COMMAND)
 LOGO_PATH = next((p for p in [Path("p.png"), Path.cwd() / "p.png"] if p.exists()), None)
@@ -1307,7 +1380,7 @@ def page_patient_database():
             col1, col2, col3 = st.columns([2, 1, 1])
 
             with col1:
-                st.markdown("#### 📋 Patient Information")
+                st.markdown("####  Patient Information")
                 st.write(f"**ID:** {patient_info[0]}")
                 st.write(f"**Age:** {patient_info[2]}")
                 st.write(f"**Condition:** {patient_info[3].title()}")
@@ -1315,7 +1388,7 @@ def page_patient_database():
                     st.write(f"**Registered:** {patient_info[4]}")
 
             with col2:
-                st.markdown("#### 🎭 Personality Profile")
+                st.markdown("####  Personality Profile")
                 if big5_scores:
                     for trait, score in zip(['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism'], big5_scores[:5]):
                         if score > 0:
@@ -1325,14 +1398,14 @@ def page_patient_database():
                     st.info("No personality data")
 
             with col3:
-                st.markdown("#### 📊 Activity Summary")
+                st.markdown("####  Activity Summary")
                 st.metric("Sessions", len(sessions))
                 st.metric("Songs", len(recommendations))
                 st.metric("Feedback", len(feedback))
 
             # Therapy Sessions
             if sessions:
-                st.markdown("#### 🏥 Therapy Sessions")
+                st.markdown("####  Therapy Sessions")
                 session_df = pd.DataFrame(sessions,
                                          columns=['Session ID', 'Date', 'Songs Recommended'])
                 if not session_df.empty:
@@ -1361,14 +1434,14 @@ def page_patient_database():
                                     st.caption(f"Channel: {song[3] if len(song) > 3 else 'N/A'}")
                             with col_video:
                                 if song[2]:
-                                    st.markdown(f"[▶️ Watch](https://www.youtube.com/watch?v={song[2]})")
+                                    st.markdown(f"[ Watch](https://www.youtube.com/watch?v={song[2]})")
 
                         if len(songs) > 5:
                             st.caption(f"... and {len(songs) - 5} more songs in this category")
 
             # Feedback Analysis
             if feedback:
-                st.markdown("#### 💬 Feedback Analysis")
+                st.markdown("####  Feedback Analysis")
 
                 feedback_counts = {}
                 for fb in feedback:
@@ -1378,18 +1451,18 @@ def page_patient_database():
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     if 'like' in feedback_counts:
-                        st.metric("👍 Likes", feedback_counts['like'])
+                        st.metric(" Likes", feedback_counts['like'])
                 with col2:
                     if 'dislike' in feedback_counts:
-                        st.metric("👎 Dislikes", feedback_counts['dislike'])
+                        st.metric(" Dislikes", feedback_counts['dislike'])
                 with col3:
                     if 'skip' in feedback_counts:
-                        st.metric("⏭️ Skips", feedback_counts['skip'])
+                        st.metric("⏭ Skips", feedback_counts['skip'])
 
                 # Recent feedback
                 st.markdown("**Recent Feedback:**")
                 for fb in feedback[:3]:
-                    emoji = {"like": "👍", "dislike": "👎", "skip": "⏭️", "neutral": "😐"}.get(fb[0], "📝")
+                    emoji = {"like": "", "dislike": "", "skip": "", "neutral": ""}.get(fb[0], "")
                     st.write(f"{emoji} {fb[0].title()} - {fb[2] if len(fb) > 2 else 'N/A'}")
 
             # Action buttons
@@ -1397,7 +1470,9 @@ def page_patient_database():
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                if st.button(f"📥 Export Data", key=f"export_{patient_info[0]}", use_container_width=True):
+                # Create a unique key that handles None patient IDs
+                unique_key = f"export_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+                if st.button(f" Export Data", key=unique_key, use_container_width=True):
                     export_data = {
                         'patient_info': patient_info,
                         'sessions': sessions,
@@ -1406,7 +1481,7 @@ def page_patient_database():
                         'big5_scores': big5_scores
                     }
                     st.download_button(
-                        label="📄 Download JSON",
+                        label=" Download JSON",
                         data=json.dumps(export_data, indent=2, default=str),
                         file_name=f"patient_{patient_info[1]}_{datetime.now().strftime('%Y%m%d')}.json",
                         mime="application/json",
@@ -1414,26 +1489,31 @@ def page_patient_database():
                     )
 
             with col2:
-                if st.button(f"🔄 Refresh Data", key=f"refresh_{patient_info[0]}", use_container_width=True):
+                refresh_key = f"refresh_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+                if st.button(f" Refresh Data", key=refresh_key, use_container_width=True):
                     st.rerun()
 
             with col3:
-                if st.button(f"🗑️ Delete Patient", key=f"delete_{patient_info[0]}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_delete_{patient_info[0]}"] = True
+                delete_key = f"delete_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+                if st.button(f" Delete Patient", key=delete_key, type="secondary", use_container_width=True):
+                    st.session_state[f"confirm_delete_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"] = True
 
             # Confirmation dialog
-            if st.session_state.get(f"confirm_delete_{patient_info[0]}", False):
-                st.warning("⚠️ **Confirm Deletion**: This will permanently delete all patient data including sessions and recommendations.")
+            confirm_key = f"confirm_delete_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+            if st.session_state.get(confirm_key, False):
+                st.warning(" **Confirm Deletion**: This will permanently delete all patient data including sessions and recommendations.")
                 col1, col2 = st.columns(2)
                 with col1:
-                    if st.button("✅ Yes, Delete", key=f"confirm_yes_{patient_info[0]}", type="primary"):
+                    yes_key = f"confirm_yes_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+                    if st.button(" Yes, Delete", key=yes_key, type="primary"):
                         delete_patient(patient_info[0])
                         st.success("Patient deleted successfully!")
-                        st.session_state[f"confirm_delete_{patient_info[0]}"] = False
+                        st.session_state[confirm_key] = False
                         st.rerun()
                 with col2:
-                    if st.button("❌ Cancel", key=f"confirm_no_{patient_info[0]}"):
-                        st.session_state[f"confirm_delete_{patient_info[0]}"] = False
+                    no_key = f"confirm_no_{patient_info[0] if patient_info[0] is not None else 'unknown'}_{hash(str(patient_info))}"
+                    if st.button(" Cancel", key=no_key):
+                        st.session_state[confirm_key] = False
                         st.rerun()
 
 def create_docx_download(patient_info: Dict, recommendations: Dict, big5_scores: Dict) -> bytes:
@@ -1865,15 +1945,8 @@ def display_song_card(song: Dict, category: str, rank: int):
         if youtube_url else ''
     )
 
-    # Always show the card with the link under the title; add iframe only if we have a video id
-    ifr = (
-        f"<div class='youtube-embed-container'>\n"
-        f"  <iframe src=\"{youtube_embed}\" title=\"{title}\" frameborder=\"0\" "
-        f"allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" "
-        f"referrerpolicy=\"strict-origin-when-cross-origin\" loading=\"lazy\" allowfullscreen></iframe>\n"
-        f"</div>"
-        if video_id and youtube_embed else ''
-    )
+    # YouTube embed component - will be added separately
+    youtube_embed_html = ''
 
     st.markdown(f"""
     <div class='song-card' style='animation-delay: {rank * 0.05}s;'>
@@ -1887,9 +1960,12 @@ def display_song_card(song: Dict, category: str, rank: int):
         <p><strong>Channel:</strong> {channel}</p>
         <p><strong>Category:</strong> <span class='category-badge'>{category}</span></p>
         {f'<p style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">{description}</p>' if description else ''}
-        {ifr}
     </div>
     """, unsafe_allow_html=True)
+
+    # Add YouTube embed separately if we have a video
+    if video_id and youtube_embed:
+        st.components.v1.iframe(youtube_embed, height=315, width=560)
 
 def render_recommendations_with_feedback(recommendations: Dict, patient_info: Dict, 
                                         session_id: str, patient_id: str):
@@ -1991,7 +2067,7 @@ def page_intake():
     <div class='glass-card'>
         <h2>Patient Intake</h2>
         <p style='color: rgba(255,255,255,0.7); font-size: 1.05rem;'>
-            Complete the assessment to receive TheramuseRX personalized music recommendations from YouTube.
+            Complete the assessment to receive TheramuseRX personalized music recommendations.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -2004,127 +2080,222 @@ def page_intake():
 
     # Only show form if not currently showing results
     if not st.session_state.show_results:
-        with st.form("intake_form", clear_on_submit=False):
-            st.markdown("###  Demographics")
-            col1, col2 = st.columns(2)
+        # Initialize session state for form data if not present
+        if 'form_data' not in st.session_state:
+            st.session_state.form_data = {}
 
-            name = col1.text_input("Name", placeholder="John Doe")
-            birthplace_city = col1.text_input("Birthplace City", placeholder="e.g., Dhaka")
-            dob = col1.date_input("Date of Birth *", value=None, min_value=date(1900, 1, 1), max_value=date.today())
-            birthplace_country = col2.text_input("Birthplace Country *", placeholder="e.g., Bangladesh, India, USA")
-            sex = col1.selectbox("Sex", ["Male", "Female", "Other"])
-            
-            st.markdown("###  Musical Preferences")
-            preferred_instruments = st.multiselect(
-                "Preferred Instruments",
-                ["Piano", "Guitar", "Violin", "Flute", "Sitar", "Tabla", "Drums", "Saxophone"]
+        # Text inputs outside of form to prevent Enter submission
+        st.markdown("###  Demographics")
+        col1, col2 = st.columns(2)
+
+        # Use session state to preserve input values
+        name = col1.text_input(
+            "Name",
+            placeholder="John Doe",
+            value=st.session_state.form_data.get('name', ''),
+            key="name_input"
+        )
+        st.session_state.form_data['name'] = name
+
+        birthplace_city = col1.text_input(
+            "Birthplace City",
+            placeholder="e.g., Dhaka",
+            value=st.session_state.form_data.get('birthplace_city', ''),
+            key="birthplace_city_input"
+        )
+        st.session_state.form_data['birthplace_city'] = birthplace_city
+
+        birthplace_country = col2.text_input(
+            "Birthplace Country *",
+            placeholder="e.g., Bangladesh, India, USA",
+            value=st.session_state.form_data.get('birthplace_country', ''),
+            key="birthplace_country_input"
+        )
+        st.session_state.form_data['birthplace_country'] = birthplace_country
+
+        dob = col1.date_input(
+            "Date of Birth *",
+            value=st.session_state.form_data.get('dob', None),
+            min_value=date(1900, 1, 1),
+            max_value=date.today(),
+            key="dob_input"
+        )
+        st.session_state.form_data['dob'] = dob
+
+        sex = col1.selectbox(
+            "Sex",
+            ["Male", "Female", "Other"],
+            index=["Male", "Female", "Other"].index(st.session_state.form_data.get('sex', 'Male')) if st.session_state.form_data.get('sex') in ["Male", "Female", "Other"] else 0,
+            key="sex_input"
+        )
+        st.session_state.form_data['sex'] = sex
+
+        st.markdown("###  Musical Preferences")
+        preferred_instruments = st.multiselect(
+            "Preferred Instruments",
+            ["Piano", "Guitar", "Violin", "Flute", "Sitar", "Tabla", "Drums", "Saxophone"],
+            default=st.session_state.form_data.get('instruments', []),
+            key="instruments_input"
+        )
+        st.session_state.form_data['instruments'] = preferred_instruments
+
+        col1, col2 = st.columns(2)
+        with col1:
+            # Support multiple favorite genres
+            st.markdown("**Favorite Music Genres** (select up to 3)")
+            favorite_genre1 = st.selectbox(
+                "Favorite Genre 1 *",
+                ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
+                index=["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"].index(st.session_state.form_data.get('favorite_genre1', '')) if st.session_state.form_data.get('favorite_genre1') in ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"] else 0,
+                key="favorite_genre1"
             )
+            st.session_state.form_data['favorite_genre1'] = favorite_genre1
 
-            col1, col2 = st.columns(2)
-            with col1:
-                # Support multiple favorite genres
-                st.markdown("**Favorite Music Genres** (select up to 3)")
-                favorite_genre1 = st.selectbox(
-                    "Favorite Genre 1 *",
-                    ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
-                    key="favorite_genre1"
-                )
-                favorite_genre2 = st.selectbox(
-                    "Favorite Genre 2 (optional)",
-                    ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
-                    key="favorite_genre2"
-                )
-                favorite_genre3 = st.selectbox(
-                    "Favorite Genre 3 (optional)",
-                    ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
-                    key="favorite_genre3"
-                )
-
-                # Combine favorite genres into a comma-separated string
-                favorite_genres = [genre for genre in [favorite_genre1, favorite_genre2, favorite_genre3] if genre]
-                favorite_genre = ", ".join(favorite_genres) if favorite_genres else ""
-
-            with col2:
-                favorite_musician = st.text_input(
-                    "Favorite Musician/Artist",
-                    placeholder="e.g., Beatles, Mozart, A.R. Rahman",
-                    key="favorite_musician_input",
-                    on_change=None
-                )
-
-            st.markdown("###  Environmental Preferences")
-            col1, col2 = st.columns(2)
-            with col1:
-                favorite_season = st.selectbox(
-                    "Favorite Season",
-                    ["", "Spring", "Summer", "Monsoon", "Autumn", "Winter"]
-                )
-            with col2:
-                natural_elements = st.multiselect(
-                    "Natural Elements You Connect With",
-                    ["Rain", "Forest", "Ocean", "Mountains", "Desert", "Rivers", "Sunset", "Sunrise"]
-                )
-            
-            st.markdown("###  Health & Wellness Profile")
-            st.markdown("Select the condition for therapy:")
-            
-            condition = st.selectbox(
-                "Primary Condition *",
-                ["Dementia / Alzheimer's", "Down Syndrome", "ADHD"]
+            favorite_genre2 = st.selectbox(
+                "Favorite Genre 2 (optional)",
+                ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
+                index=["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"].index(st.session_state.form_data.get('favorite_genre2', '')) if st.session_state.form_data.get('favorite_genre2') in ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"] else 0,
+                key="favorite_genre2"
             )
-            
-            # Condition-specific questions
-            if condition == "Dementia / Alzheimer's":
-                st.markdown("#### Memory & Sleep Assessment")
-                difficulty_sleeping = st.checkbox("Difficulty sleeping?")
-                trouble_remembering = st.checkbox("Trouble remembering recent things?")
-                forgets_everyday_things = st.checkbox("Often forgets everyday things?")
-                difficulty_recalling_old_memories = st.checkbox("Difficulty recalling older memories?")
-                memory_worse_than_year_ago = st.checkbox("Memory worse than a year ago?")
-                visited_mental_health = st.checkbox("Visited mental health professional?")
-            else:
-                difficulty_sleeping = False
-                trouble_remembering = False
-                forgets_everyday_things = False
-                difficulty_recalling_old_memories = False
-                memory_worse_than_year_ago = False
-                visited_mental_health = False
-            
-            st.markdown("###  Personality Assessment (Big-5)")
-            st.markdown("Rate each statement from 1 (Strongly Disagree) to 7 (Strongly Agree)")
-            
-            statements = [
-                "I see myself as extraverted, enthusiastic",
-                "I see myself as critical, quarrelsome",
-                "I see myself as dependable, self-disciplined",
-                "I see myself as anxious, easily upset",
-                "I see myself as open to new experiences, complex",
-                "I see myself as reserved, quiet",
-                "I see myself as sympathetic, warm",
-                "I see myself as disorganized, careless",
-                "I see myself as calm, emotionally stable",
-                "I see myself as conventional, uncreative"
-            ]
-            
-            big5_items = [slider_with_ticks(f"{i+1}. {s}", key=f"big5_{i+1}") for i, s in enumerate(statements)]
+            st.session_state.form_data['favorite_genre2'] = favorite_genre2
 
+            favorite_genre3 = st.selectbox(
+                "Favorite Genre 3 (optional)",
+                ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
+                index=["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"].index(st.session_state.form_data.get('favorite_genre3', '')) if st.session_state.form_data.get('favorite_genre3') in ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"] else 0,
+                key="favorite_genre3"
+            )
+            st.session_state.form_data['favorite_genre3'] = favorite_genre3
+
+            # Combine favorite genres into a comma-separated string
+            favorite_genres = [genre for genre in [favorite_genre1, favorite_genre2, favorite_genre3] if genre]
+            favorite_genre = ", ".join(favorite_genres) if favorite_genres else ""
+            st.session_state.form_data['favorite_genre'] = favorite_genre
+
+        with col2:
+            favorite_musician = st.text_input(
+                "Favorite Musician/Artist",
+                placeholder="e.g., Opeth, Thom Yorke, Artcell",
+                value=st.session_state.form_data.get('favorite_musician', ''),
+                key="favorite_musician_input"
+            )
+            st.session_state.form_data['favorite_musician'] = favorite_musician
+
+        st.markdown("###  Environmental Preferences")
+        col1, col2 = st.columns(2)
+        with col1:
+            favorite_season = st.selectbox(
+                "Favorite Season",
+                ["", "Spring", "Summer", "Monsoon", "Autumn", "Winter"],
+                index=["", "Spring", "Summer", "Monsoon", "Autumn", "Winter"].index(st.session_state.form_data.get('favorite_season', '')) if st.session_state.form_data.get('favorite_season') in ["", "Spring", "Summer", "Monsoon", "Autumn", "Winter"] else 0,
+                key="favorite_season"
+            )
+            st.session_state.form_data['favorite_season'] = favorite_season
+        with col2:
+            natural_elements = st.multiselect(
+                "Natural Elements You Connect With",
+                ["Rain", "Forest", "Ocean", "Mountains", "Desert", "Rivers", "Sunset", "Sunrise"],
+                default=st.session_state.form_data.get('natural_elements', []),
+                key="natural_elements"
+            )
+            st.session_state.form_data['natural_elements'] = natural_elements
+
+        st.markdown("###  Health & Wellness Profile")
+        st.markdown("Select the condition for therapy:")
+
+        condition = st.selectbox(
+            "Primary Condition *",
+            ["Dementia / Alzheimer's", "Down Syndrome", "ADHD"],
+            index=["Dementia / Alzheimer's", "Down Syndrome", "ADHD"].index(st.session_state.form_data.get('condition', 'Dementia / Alzheimer\'s')) if st.session_state.form_data.get('condition') in ["Dementia / Alzheimer's", "Down Syndrome", "ADHD"] else 0,
+            key="condition"
+        )
+        st.session_state.form_data['condition'] = condition
+
+        # Memory & Sleep Assessment - shown for all conditions
+        st.markdown("#### Memory & Sleep Assessment")
+        difficulty_sleeping = st.checkbox(
+            "Difficulty sleeping?",
+            value=st.session_state.form_data.get('difficulty_sleeping', False),
+            key="difficulty_sleeping"
+        )
+        st.session_state.form_data['difficulty_sleeping'] = difficulty_sleeping
+
+        trouble_remembering = st.checkbox(
+            "Trouble remembering recent things?",
+            value=st.session_state.form_data.get('trouble_remembering', False),
+            key="trouble_remembering"
+        )
+        st.session_state.form_data['trouble_remembering'] = trouble_remembering
+
+        forgets_everyday_things = st.checkbox(
+            "Often forgets everyday things?",
+            value=st.session_state.form_data.get('forgets_everyday_things', False),
+            key="forgets_everyday_things"
+        )
+        st.session_state.form_data['forgets_everyday_things'] = forgets_everyday_things
+
+        difficulty_recalling_old_memories = st.checkbox(
+            "Difficulty recalling older memories?",
+            value=st.session_state.form_data.get('difficulty_recalling_old_memories', False),
+            key="difficulty_recalling_old_memories"
+        )
+        st.session_state.form_data['difficulty_recalling_old_memories'] = difficulty_recalling_old_memories
+
+        memory_worse_than_year_ago = st.checkbox(
+            "Memory worse than a year ago?",
+            value=st.session_state.form_data.get('memory_worse_than_year_ago', False),
+            key="memory_worse_than_year_ago"
+        )
+        st.session_state.form_data['memory_worse_than_year_ago'] = memory_worse_than_year_ago
+
+        visited_mental_health = st.checkbox(
+            "Visited mental health professional?",
+            value=st.session_state.form_data.get('visited_mental_health', False),
+            key="visited_mental_health"
+        )
+        st.session_state.form_data['visited_mental_health'] = visited_mental_health
+
+        st.markdown("###  Personality Assessment (Big-5)")
+        st.markdown("Rate each statement from 1 (Strongly Disagree) to 7 (Strongly Agree)")
+
+        statements = [
+            "I see myself as extraverted, enthusiastic",
+            "I see myself as critical, quarrelsome",
+            "I see myself as dependable, self-disciplined",
+            "I see myself as anxious, easily upset",
+            "I see myself as open to new experiences, complex",
+            "I see myself as reserved, quiet",
+            "I see myself as sympathetic, warm",
+            "I see myself as disorganized, careless",
+            "I see myself as calm, emotionally stable",
+            "I see myself as conventional, uncreative"
+        ]
+
+        big5_items = [slider_with_ticks(f"{i+1}. {s}", key=f"big5_{i+1}") for i, s in enumerate(statements)]
+
+        # Now create a simple form just for the submission button
+        with st.form("submission_form"):
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 submitted = st.form_submit_button("TheramusRX Recommendations", type="primary", width='stretch')
 
         # ONLY process when form is explicitly submitted
         if submitted:
+            # Get data from session state
+            form_data = st.session_state.form_data
+
             # Validate required fields
-            if not dob or not birthplace_country:
+            if not form_data.get('dob') or not form_data.get('birthplace_country'):
                 st.error(" Please fill in Date of Birth and Birthplace Country.")
                 st.stop()  # Stop execution here
 
             # Validate at least one favorite genre is selected
-            if not favorite_genre1:
+            if not form_data.get('favorite_genre1'):
                 st.error(" Please select at least one favorite music genre.")
                 st.stop()  # Stop execution here
 
             # Calculate age and birth year
+            dob = form_data.get('dob')
             age = compute_age_from_dob(dob)
             birth_year = dob.year
 
@@ -2144,28 +2315,28 @@ def page_intake():
             }
 
             # Determine actual condition
-            actual_condition = get_condition_code(condition)
+            actual_condition = get_condition_code(form_data.get('condition'))
 
-            # Build patient info dictionary
+            # Build patient info dictionary from session state
             patient_info = {
-                "name": name or "Anonymous",
+                "name": form_data.get('name') or "Anonymous",
                 "age": age,
                 "birth_year": birth_year,
-                "sex": sex,
-                "birthplace_city": birthplace_city.strip(),
-                "birthplace_country": birthplace_country.strip(),
-                "instruments": preferred_instruments,
-                "favorite_genre": favorite_genre,
-                "favorite_musician": favorite_musician.strip() if favorite_musician else "",
-                "favorite_season": favorite_season,
-                "natural_elements": natural_elements,
+                "sex": form_data.get('sex'),
+                "birthplace_city": form_data.get('birthplace_city', '').strip(),
+                "birthplace_country": form_data.get('birthplace_country', '').strip(),
+                "instruments": form_data.get('instruments', []),
+                "favorite_genre": form_data.get('favorite_genre', ''),
+                "favorite_musician": form_data.get('favorite_musician', '').strip(),
+                "favorite_season": form_data.get('favorite_season', ''),
+                "natural_elements": form_data.get('natural_elements', []),
                 "condition": actual_condition,
-                "difficulty_sleeping": difficulty_sleeping,
-                "trouble_remembering": trouble_remembering,
-                "forgets_everyday_things": forgets_everyday_things,
-                "difficulty_recalling_old_memories": difficulty_recalling_old_memories,
-                "memory_worse_than_year_ago": memory_worse_than_year_ago,
-                "visited_mental_health_professional": visited_mental_health,
+                "difficulty_sleeping": form_data.get('difficulty_sleeping', False),
+                "trouble_remembering": form_data.get('trouble_remembering', False),
+                "forgets_everyday_things": form_data.get('forgets_everyday_things', False),
+                "difficulty_recalling_old_memories": form_data.get('difficulty_recalling_old_memories', False),
+                "memory_worse_than_year_ago": form_data.get('memory_worse_than_year_ago', False),
+                "visited_mental_health_professional": form_data.get('visited_mental_health', False),
                 "big5_scores": big5_scores
             }
 
@@ -2173,7 +2344,7 @@ def page_intake():
             patient_id = f"patient_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
             # Initialize TheraMuse
-            with st.spinner(f" TheramuseRX is generating personalized recommendations for age {age}..."):
+            with st.spinner(f" TheramuseRX is generating personalized recommendations "):
                 try:
                     if 'theramuse' not in st.session_state:
                         st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
@@ -2195,12 +2366,12 @@ def page_intake():
                         patient_info, big5_scores, recommendations,
                         recommendations.get('session_id', f"session_{datetime.now().strftime('%Y%m%d%H%M%S')}")
                     )
-                    st.success(f" 📝 Patient data saved to database! ID: {db_patient_id}")
-                    st.info("💾 You can view all patient records in the '🗂️ Patient Database' section")
+                    st.success(f"  Patient data saved to database! ID: {db_patient_id}")
+                    st.info(" You can view all patient records in the 'Patient Database' section")
                 except Exception as e:
-                    st.warning(f" ⚠️ Could not save to enhanced database: {str(e)}")
+                    st.warning(f"  Could not save to enhanced database: {str(e)}")
                     st.info("Recommendations will still be displayed, but enhanced patient features won't be available.")
-                    st.info("📝 Check the '🗂️ Patient Database' section to see if other patients are stored there.")
+                    st.info("Check the 'Patient Database' section to see if other patients are stored there.")
 
                 # Store in session state
                 st.session_state.tm_recs = recommendations
@@ -2225,7 +2396,7 @@ def page_intake():
         with col2:
             if st.button(" Start New Patient Intake", type="secondary", width='stretch'):
                 # Clear all session state
-                for key in ['tm_recs', 'tm_patient_data', 'tm_patient_id', 'tm_session_id', 'tm_b5_scores', 'show_results', 'processing_complete']:
+                for key in ['tm_recs', 'tm_patient_data', 'tm_patient_id', 'tm_session_id', 'tm_b5_scores', 'show_results', 'processing_complete', 'form_data']:
                     if key in st.session_state:
                         del st.session_state[key]
                 st.rerun()
@@ -2397,76 +2568,435 @@ def page_research_evidence():
 
     st.markdown("## Research Evidence of Music Therapy for Dementia, ADHD, Down Syndrome, and Big Five Personality Traits & Music Genre Preferences")
 
-    st.markdown("### Music Therapy for Dementia (Older People)")
-    st.markdown("#### Systematic Reviews and Meta-Analyses:")
-    st.write("Moreno-Morales et al. (2020) conducted a comprehensive systematic review and meta-analysis examining music therapy's effects on dementia patients. The study analyzed eight studies with 816 participants and found that music therapy significantly improved cognitive function (SMD = -0.23, 95% CI: -0.44, -0.02), with passive interventions (listening to music) showing greater effects than active interventions. Shorter intervention periods (<20 weeks) were more effective than longer ones.")
+    # Updated long-form compilation provided by user
+    with st.expander("**Click Here to Read  Research Evidence (Detailed Compilation**)", expanded=False):
+        st.markdown(
+            """
+            <div style='color: #000000; line-height: 1.6;'>
+            <h3 style='color: #000000; margin-bottom: 1rem;'>Research Papers on Music Therapy for Dementia and Big Five Personality Traits</h3>
 
-    st.write("Recent NHS Research (2025) published findings from the MELODIC (Music therapy Embedded in the Life Of Dementia Inpatient Care) protocol, a feasibility study involving 28 patients, 13 family members, and 48 staff members across two NHS mental health dementia wards. The intervention showed high treatment adherence with no increase in distress symptoms or safety incidents during the intervention period.")
+            1. Music Therapy in the Treatment of Dementia: A Systematic Review and Meta-Analysis (Moreno-Morales et al., 2020)
+            - Link: https://pubmed.ncbi.nlm.nih.gov/32509790/
+            - Study Type: Systematic review and meta-analysis
+            - Key Findings: Cognitive function: Music therapy significantly improves cognitive function in people with dementia; Quality of life: Improvements in quality of life after intervention; Depression: Long-term depression improvements demonstrated; Limitations: No evidence of improvement in quality of life long-term or short-term depression
+            - Databases Searched: Medline, PubMed Central, Embase, PsycINFO, and Cochrane Library
+            - Conclusion: Music therapy shows promise as a powerful treatment strategy, but standardized protocols need to be developed depending on dementia stage.
 
-    st.write("Evidence from systematic review (2024) demonstrated that music therapy reduces distress and improves well-being for people with advanced dementia in institutional settings by meeting unmet needs and increasing communication between staff and family members.")
+            2. The Effects of Music-Based Interventions on Behavioural and Psychological Symptoms of Dementia (de Witte et al., 2024)
+            - Link: https://www.tandfonline.com/doi/full/10.1080/13607863.2024.2373969
+            - Study Type: Systematic review and network meta-analysis protocol
+            - Key Findings: Previous meta-analyses showed music therapy reduces agitation (g = −0.66; 9 RCTs) and anxiety (g = −0.51; 5 RCTs). Active music therapy by music therapists showed positive effects on global cognition (SMD = 0.29; 3 RCTs). Music therapist-delivered active therapy was more effective (SMD −3.00; 15 RCTs) than music listening by other healthcare professionals (SMD −2.06; 15 RCTs) for depression. Substantial heterogeneity exists due to intervention types, study design, and instruments.
+            - Significance: First network meta-analysis comparing different types of music-based interventions for BPSD.
 
-    st.write("Meta-analysis on quality of life (2024) examining eight studies with 605 subjects (330 receiving music therapy) showed positive effects on depression scores, though with wide confidence intervals, emphasizing the need for more robust research.")
+            3. Cochrane Review: Music-Based Therapeutic Interventions for People with Dementia (van der Steen et al., 2018/Updated 2024)
+            - Link: https://www.cochrane.org/evidence/CD003477_does-music-based-therapy-help-people-dementia
+            - Alternative Link: https://pubmed.ncbi.nlm.nih.gov/30033623/
+            - Study Type: Cochrane systematic review with meta-analysis
+            - Sample: 30 studies with 1,720 randomized participants across 15 countries
+            - Key Findings: Depressive symptoms: Moderate-certainty evidence of slight improvement (SMD −0.23); Overall behavioral problems: Low-certainty evidence of improvement (SMD −0.31); Agitation/aggression: Likely no improvement (SMD −0.05); No significant improvements in emotional well-being, anxiety, social behavior, or cognition at end of treatment; Long-term effects (4+ weeks after) may be smaller and remain uncertain.
+            - Lead Author Quote: “Music therapy is a drug-free way of helping people feel less sad and less anxious... reasonable alternative to pharmacological approaches.”
 
-    st.markdown("### Music Therapy for ADHD (Any Age)")
-    st.markdown("#### Meta-Analyses and Systematic Reviews:")
-    st.write("de Oliveira Goes et al. (2025) conducted a meta-analysis examining music therapy outcomes in children and adolescents with ADHD. The study showed a trend toward efficacy (effect size: 1.18; CI: -3.8 - 0.21; p = 0.08) with significant heterogeneity among trials (I² = 92%). Active music therapy improved social skills, self-esteem, and reduced aggressive behavior.")
+            4. HOMESIDE: Home-Based Family Caregiver-Delivered Music Intervention (Baker et al., 2023)
+            - Link: https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00401-7/fulltext
+            - Study Type: Randomized controlled trial protocol (2 × 2 factorial cluster design)
+            - Innovation: Tests whether family caregivers can deliver music interventions at home
+            - Primary Outcome: Reduction in BPSD after 90 days compared to standard care
+            - Mechanisms Identified: Activation of neuroplastic and neurochemical processes; Auditory-motor coupling; Neural entrainment; Arousal-mood pathways; Autobiographical and implicit memory activation
+            - Significance: Could enable longer home living and reduce admissions.
 
-    st.write("Kasuya-Ueba et al. (2024) published a systematic review examining music's effects on ADHD, finding that both active (playing instruments) and passive (listening) music therapy reduced symptomatology, with rock music specifically reducing motor activity and improving attention.")
+            5. MIDDEL Trial: Clinical Effectiveness of Music Interventions for Dementia and Depression in Elderly Care (Baker et al., 2022)
+            - Link: https://www.sciencedirect.com/science/article/pii/S2666756822000277
+            - Alternative: https://www.thelancet.com/journals/lanhl/article/PIIS2666-7568(22)00027-7/fulltext
+            - Study Type: 2 × 2 factorial cluster-RCT comparing Group Music Therapy (GMT), Recreational Choir Singing (RCS), GMT+RCS, and standard care
+            - Key Findings: RCS reduced depressive symptoms at end of 6 months; Positive effects on neuropsychiatric symptoms and quality of life; Singing effects on depression sustained at 12 months; Interventions more intensive and standardized than prior work.
+            - Significance: First large-scale direct comparison of music therapy vs recreational singing; singing shows durable benefits.
 
-    st.write("Quispe et al. (2025) systematic review of 24 documents found music as effective non-pharmacological therapy improving concentration, self-esteem, social skills development, and reducing hyperactivity and anxiety states.")
+            6. ALMUTH Study: 12-Month Randomised Pilot Trial (Matziorinis et al., 2023)
+            - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC10114372/
+            - Study Type: 12-month three-arm RCT (music therapy via choir singing vs physical activity vs control) in mild-to-moderate AD
+            - Unique: Longest duration music therapy RCT to date; includes structural/functional MRI and DTI; 45–60 min choir sessions, 4x/month for 12 months
+            - Neurobiological Rationale: Musical memory networks are spared late in AD; music activates broad networks; preserved musical memory supports familiar recognition.
 
-    st.write("Multi-dimensional computational study (2025) analyzed over 9,215 tracks from r/ADHD community, finding that focus music was characterized by higher valence and instrumentalness, suggesting preference for uplifting and instrumental tracks that aid concentration.")
+            7. The Promise of Music Therapy for Alzheimer’s Disease: A Review (Fang et al., 2022)
+            - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC9796133/
+            - Focus: Music-Evoked Autobiographical Memories (MEAMs) remain preserved; self-selected music evokes faster, more specific, and more emotional memories; unfamiliar music can also enhance recall and reduce trait anxiety; anterior hippocampus links emotion and autobiographical memory.
 
-    st.write("Neurocognitive mechanisms review (2025) identified seven potential mechanisms through which music interventions help ADHD: executive function enhancement, timing improvement, arousal regulation, default mode network modulation, neural entrainment, affective management, and social bonding facilitation.")
+            8. Individualized Music Listening RCT Protocol (Jakob et al., 2024)
+            - Link: https://pubmed.ncbi.nlm.nih.gov/38532365/
+            - Intervention: App-based individualized music listening delivered by family caregivers at home (20 min every other day × 6 weeks)
+            - Outcomes: Well-being, physiological stress (hair cortisol), QoL, BPSD, resistance during care, caregiver burden.
 
-    st.markdown("### Music Therapy for Children with Down Syndrome")
-    st.markdown("#### Research Studies:")
-    st.write("He et al. (2024) conducted a quasi-experimental study with 18 children with Down syndrome (ages 7-10) using Orff-Schulwerk-based music engagement and movement activities. Results showed statistically significant improvements in attentiveness (t = 9.0+) and memory compared to control groups.")
+            9. Personalized Playlists and Individual Differences (Garrido et al., 2018)
+            - Link: https://pubmed.ncbi.nlm.nih.gov/29966193/
+            - Finding: Personalization is necessary but not sufficient; depression/apathy severity and cognitive impairment level moderate responses; high depression may increase sadness.
 
-    st.write("Zhang (2024) literature review and interviews found that active music therapy promotes socialization development in children under 12 with Down syndrome in three aspects: language skills, social-emotional development, and prosocial behavior.")
+            10. How and Why Music Therapy Reduces Distress in Advanced Dementia (Thompson et al., 2024)
+            - Link: https://www.nature.com/articles/s44220-024-00342-x
+            - Study Type: Realist review developing program theory
+            - Mechanisms: Core intervention elements; individual/interpersonal/institutional contexts; hidden mechanisms include meeting unmet needs and improving communication; integrates neurological, social, psychological models.
 
-    st.write("Music therapy research (2020) demonstrated that music plays a crucial role in development of children with Down syndrome, improving social skills, communication, and emotional expression.")
+            <h4 style='color: #000000; margin-bottom: 0.75rem; margin-top: 1.5rem;'>Big Five Personality Traits and Music Preferences: Key Research Papers</h4>
+            11. Associations Between Personality Traits and Music Preference (Boccia, 2020)
+            - Link: https://digitalcommons.lindenwood.edu/cgi/viewcontent.cgi?article=1000&context=psych_journals
+            - Finding: Overall enjoyment correlates positively with Openness, Extraversion, Agreeableness; negatively with Neuroticism; Conscientiousness not significant. Genre specifics: Openness→rap/classical; Extraversion→country/pop/electronic; Agreeableness→rap/country/pop; Conscientiousness→country; Neuroticism negatively with new age/classical.
 
-    st.write("Systematic review of music-based interventions (2025) in pediatric populations found music therapy valuable as adjunct to conventional neurorehabilitation, reducing anxiety, pain, and depressive symptoms while improving well-being and caregiver interactions.")
+            12. The Structure of Musical Preferences: MUSIC Model (Rentfrow, Goldberg & Levitin, 2011)
+            - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC3138530/
+            - Factors: Mellow, Urban, Sophisticated, Intense, Campestral.
 
-    st.markdown("### Big Five Personality Traits and Music Genre Preferences")
-    st.markdown("#### Research Findings:")
-    st.write("Boccia (2020) study of 175 participants found that individuals high in Openness, Extraversion, or Agreeableness enjoyed more music genres. Those low in Neuroticism also enjoyed more genres. High Conscientiousness and Neuroticism were associated with preference for mellow music (classical, new age).")
+            13. Big Five and Embodied Musical Emotions (Mendoza Garay, 2023)
+            - Link: https://journals.sagepub.com/doi/10.1177/03057356221135355
+            - Finding: Openness and Agreeableness most strongly linked to embodied musical emotions.
 
-    st.write("Ferwerda et al. (2017) analyzed 1,415 Last.fm users across 83 countries, finding:")
-    st.write("Openness: Correlated with new age (r=.101), classical (r=.136), blues (r=.120), country (r=.106), world (r=.134), folk (r=.214), and jazz (r=.139)")
-    st.write("Extraversion: Positively correlated with R&B (r=.103) and rap (r=.129)")
-    st.write("Agreeableness: Correlated with country (r=.104) and folk (r=.104)")
-    st.write("Neuroticism: Positively correlated with alternative music (r=.101)")
+            14. Global Personality-Music Links (Greenberg et al., 2022)
+            - Link: https://www.technologynetworks.com/neuroscience/news/nirvana-for-neuroticism-how-musical-preferences-match-personality-traits-around-the-world-358429
+            - Findings: Extraversion→contemporary/upbeat; Openness→sophisticated; Agreeableness→upbeat/conventional; Conscientiousness→negative with intense; Neuroticism→prefers intense styles.
 
-    st.write("Nave et al. (2018) study of 8,097 participants found:")
-    st.write("Openness: Associated with sophisticated music (r=.16) and less liking of mellow (r=-.12) and contemporary music (r=-.11)")
-    st.write("Extraversion: Associated with unpretentious music preference (r=.13)")
+            15. Music Listening and High Neuroticism (Chan et al., 2024)
+            - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC11129041/
+            - Findings: Music reduces physiological stress in both high/low neuroticism; high neuroticism group reports smaller subjective improvements (cognitive bias); use physiological as well as self-report measures.
 
-    st.write("Cambridge University Research (2022) found consistent global correlations between:")
-    st.write("Extraversion and contemporary music")
-    st.write("Conscientiousness and unpretentious music")
-    st.write("Agreeableness and mellow and unpretentious music")
-    st.write("Openness and mellow, contemporary, intense, and sophisticated music")
+            16. Personality Computing with Naturalistic Music Listening (Hansen et al., 2023)
+            - Link: https://online.ucpress.edu/collabra/article/9/1/75214/196347/Personality-Computing-With-Naturalistic-Music
+            - Findings: Openness most related to music listening (r=.25); Conscientiousness second (r=.13); audio features best for Openness, lyrics for Conscientiousness.
 
-    st.write("Spotify Research (2025) analyzing three months of listening data found:")
-    st.write("Openness: Linked to Classical, Afropop, and \"Sentimental\" music")
-    st.write("Emotional Stability: Inversely related to Blues and \"Brooding\" music, positively to Soul and \"Lively\" music")
-    st.write("Agreeableness: Inversely related to Death Metal and \"Aggressive\" music, positively to Jazz and Country")
+            17. Big Five Domains and Music Listening (Hansen et al., 2025)
+            - Link: https://www.nature.com/articles/s41598-025-95661-z
+            - Findings: Open-mindedness most strongly associated; Agreeableness and Neuroticism also strongly associated.
 
-    st.markdown("### Additional Research Papers (Continuing toward 50+ papers)")
-    st.write("Rentfrow & Gosling (2011) - Five-factor model of musical preferences based on affective reactions")
-    st.write("Setti (2022) - Influence of openness facets on music preference in 478 undergraduate students")
-    st.write("Li (2024) - Cross-cultural study on personality influence on music preference across geographic locations")
-    st.write("Hansen et al. (2025) - Role of Big Five personality domains in musical preferences using Nature publication")
-    st.write("Mendoza Garay et al. (2023) - Exploring relations between Big Five traits and embodied musical emotions")
-    st.write("Vella (2017) - Influence of openness and extraversion on music preference mediation")
-    st.write("Systematic review (2025) - Music intervention for neurodevelopment in pediatric populations")
-    st.write("Meta-analysis (2025) - Effectiveness of music-based therapy on adolescents and children")
-    st.write("Research (2022) - Effectiveness of music therapy in children with autism spectrum disorder")
-    st.write("Study (2025) - Music therapy for pain and anxiety reduction in pediatric settings")
-    st.write("Clinical trial (2012) - Randomized controlled trial of improvisational music therapy for autism spectrum disorders")
-    st.write("Research (2024) - Use and effectiveness of musical social story therapy in developmental disorders")
+            18. Musical Capacity and Big Five (2023)
+            - Link: https://ijip.in/wp-content/uploads/2023/02/18.01.087.20231101.pdf
+            - Findings: Listening sophistication correlated with all Big Five; all musical capacity factors correlated with Openness; indifference to music negatively with Openness/Conscientiousness.
+
+            19. Personality, Music Listening, and Well-Being (Martarelli et al., 2024)
+            - Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC11064775/
+            - Mechanisms: Emotion regulation, empathy, state absorption; stable traits involved: Neuroticism, absorption, Openness; listening to sad music often reflects immersion/absorption, not mood.
+
+            ---
+            <h3 style='color: #000000; margin-bottom: 0.75rem; margin-top: 1.5rem;'>How These Papers Apply to Dementia and Big Five Personality</h3>
+            - Individualized vs Generic Music: Personalization matters but must consider depression, apathy, severity of impairment.
+            - Active vs Passive Engagement: Active music-making by trained therapists more effective than passive listening, especially for depression.
+            - Autobiographical Memory Activation: MEAMs explain why familiar music works; anterior hippocampus links emotion and memory.
+            - Caregiver-Delivered Interventions: Family-delivered interventions at home are promising and scalable.
+            - BPSD Focus: Strongest effects for depression and behavioral problems; modest for anxiety; limited for agitation/aggression.
+
+            <h3 style='color: #000000; margin-bottom: 0.75rem; margin-top: 1.5rem;'>Personality-Matched Music Selection</h3>
+            - Openness: Diverse/sophisticated genres; world/jazz/classical/experimental.
+            - Extraversion: Contemporary, rhythmic, upbeat; pop/electronic/country.
+            - Agreeableness: Positive-valence, conventional, communal; pop/country/soul.
+            - Neuroticism: Intense styles for catharsis; monitor relaxation attempts; use physiological measures.
+            - Conscientiousness: Focus on lyrics/meaning rather than audio features.
+
+            <h3 style='color: #000000; margin-bottom: 0.75rem; margin-top: 1.5rem;'>Combined Application (Dementia + Personality)</h3>
+            <div style='color: #000000; margin-bottom: 1rem;'>
+            Tailor selections to lifelong personality and autobiographical era (youth/young adult music), prioritize active engagement, and monitor outcomes behaviorally and physiologically when neuroticism is high.
+            </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("###  Music Therapy for Dementia: Key Research Papers")
+    st.markdown("#### 1. Systematic Reviews and Meta-Analyses")
+
+    with st.expander(" **Music Therapy in the Treatment of Dementia: A Systematic Review and Meta-Analysis** (Moreno-Morales et al., 2020)", expanded=False):
+        st.markdown("""
+        <a href="https://pubmed.ncbi.nlm.nih.gov/32509790/" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Systematic review and meta-analysis of 8 studies with 816 participants
+
+        **Key Findings:**
+        -  **Cognitive function**: Music therapy significantly improves cognitive function (SMD = -0.23, 95% CI: -0.44, -0.02)
+        -  **Quality of life**: Improvements in quality of life after intervention
+        - **Depression**: Long-term depression improvements demonstrated
+        - **Limitations**: No evidence of improvement in quality of life long-term or short-term depression
+
+        **Databases Searched:** Medline, PubMed Central, Embase, PsycINFO, and Cochrane Library
+
+        **Conclusion:** Music therapy shows promise as a powerful treatment strategy, but standardized protocols need to be developed depending on dementia stage.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **The Effects of Music-Based Interventions on Behavioural and Psychological Symptoms of Dementia** (de Witte et al., 2024)", expanded=False):
+        st.markdown("""
+        <a href="https://www.tandfonline.com/doi/full/10.1080/13607863.2024.2373969" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Systematic review and network meta-analysis protocol
+
+        **Key Findings:**
+        - Previous meta-analyses showed music therapy reduces **agitation** (effect size g = −0.66; 9 RCTs) and **anxiety** (g = −0.51; 5 RCTs)
+        - Active music therapy delivered by music therapists showed positive effects on **global cognition** (SMD = 0.29; 3 RCTs)
+        - Music therapist-delivered active therapy was more effective (SMD −3.00; 15 RCTs) than music listening by other healthcare professionals (SMD −2.06; 15 RCTs) for **depression**
+        - **Substantial heterogeneity** exists due to intervention types, study design, and measurement instruments
+
+        **Significance:** First network meta-analysis comparing different types of music-based interventions for BPSD.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **Cochrane Review: Music-Based Therapeutic Interventions for People with Dementia** (van der Steen et al., 2018/Updated 2024)", expanded=False):
+        st.markdown("""
+        <a href="https://www.cochrane.org/evidence/CD003477_does-music-based-therapy-help-people-dementia" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+        <br/>
+        <a href="https://pubmed.ncbi.nlm.nih.gov/30033623/" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Alternative Link</a>
+
+        **Study Design:** Cochrane systematic review with meta-analysis
+        **Sample:** 30 studies with 1,720 randomized participants across 15 countries
+
+        **Key Findings:**
+        - **Depressive symptoms**: Moderate-certainty evidence that music therapy probably improved depressive symptoms slightly (SMD −0.23, 95% CI −0.42 to −0.04; 9 studies, 441 participants)
+        - **Overall behavioral problems**: Low-certainty evidence it may improve overall behavioral problems (SMD −0.31, 95% CI −0.60 to −0.02; 10 studies, 385 participants)
+        - **Agitation/aggression**: Moderate-certainty evidence that music therapy likely did NOT improve agitation or aggression (SMD −0.05)
+        - No significant improvements in emotional well-being, anxiety, social behavior, or cognition at end of treatment
+        - **Long-term effects** (4+ weeks after treatment): May be smaller and remain uncertain
+
+        **Lead Author Quote:** *"Music therapy is a drug-free way of helping people feel less sad and less anxious. Looking at the effect sizes, music therapy is a reasonable alternative to pharmacological approaches and is much more person-centered."*
+        """, unsafe_allow_html=True)
+
+    with st.expander("**HOMESIDE: Home-Based Family Caregiver-Delivered Music Intervention** (Baker et al., 2023)", expanded=False):
+        st.markdown("""
+        <a href="https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00401-7/fulltext" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Randomized controlled trial protocol (2 × 2 factorial cluster design)
+
+        **Innovation:** Tests whether **family caregivers (not professionals)** can deliver music interventions at home
+
+        **Primary Outcome:** Reduction in BPSD after 90 days compared to standard care
+
+        **Mechanisms Identified:**
+        - **Activation of neuroplastic and neurochemical processes**
+        - **Auditory-motor coupling**
+        - **Neural entrainment**
+        - **Arousal-mood pathways**
+        - **Autobiographical and implicit memory activation**
+
+        **Significance:** Could enable people with dementia to live at home longer and reduce hospital/care home admissions.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **MIDDEL Trial: Clinical Effectiveness of Music Interventions for Dementia and Depression** (Baker et al., 2022)", expanded=False):
+        st.markdown("""
+        <a href="https://www.sciencedirect.com/science/article/pii/S2666756822000277" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+        <br/>
+        <a href="https://www.thelancet.com/journals/lanhl/article/PIIS2666-7568(22)00027-7/fulltext" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Alternative Link</a>
+
+        **Study Design:** 2 × 2 factorial cluster-randomized controlled trial
+
+        **Interventions Compared:**
+        - **Group Music Therapy (GMT)** - delivered by music therapists
+        -  **Recreational Choir Singing (RCS)** - delivered by community musicians
+        -  **GMT + RCS combined**
+        -  **Standard care**
+
+        **Key Findings:**
+        -  **RCS (singing)** reduced depressive symptoms at end of 6-month intervention
+        - **Positive effects** on neuropsychiatric symptoms and quality of life
+        -  **Singing effects on depression** were sustained long-term (12 months)
+        - **More intensive and standardized** than previous studies
+
+        **Significance:** First large-scale trial directly comparing music therapy vs. recreational singing, showing singing has durable benefits.
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("### Music Therapy for ADHD: Key Research Papers")
+
+    with st.expander(" **Modulation in background music influences sustained attention** (Woods et al., 2019)", expanded=False):
+        st.markdown("""
+        <a href="https://arxiv.org/abs/1907.06909" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Large-scale study (N=677) examining how amplitude modulation in music affects sustained attention
+
+        **Key Finding:** Music with **16 Hz beta-band modulation** significantly improved sustained attention performance. Participants with higher ADHD traits benefited more from stronger modulation depths.
+
+        **Application:** This is the most rigorous experimental evidence for specific frequency modulation in ADHD. The 16 Hz modulation rate works by entraining brain oscillations in the beta band, which is associated with active concentration and alertness.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **The Effect of 40 Hz Binaural Beats on Working Memory** (Wang, Zhang, Li & Yang, 2022)", expanded=False):
+        st.markdown("""
+        <a href="https://ieeexplore.ieee.org/document/9802990" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Controlled experiment with 40 healthy volunteers using EEG monitoring
+
+        **Key Findings:**
+        - **40 Hz binaural beats** significantly improved working memory task performance
+        -  Induced "frequency-following response" where brain waves synchronized to the 40 Hz stimulus
+        - Increased Higuchi fractal dimension (HFD) in temporal and parietal lobes, indicating enhanced neural complexity
+        -  Increased duration and coverage of EEG microstate D (associated with attention networks)
+        - Decreased microstate A (associated with mind-wandering)
+
+        **Application for ADHD:** Working memory deficits are core features of ADHD. The 40 Hz gamma frequency appears to entrain brain oscillations in the gamma band, which is crucial for cognitive processing, attention, and memory consolidation.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **Pilot add-on Randomized-Controlled Trial evaluating binaural beats in adult ADHD** (Malandrone et al., 2022)", expanded=False):
+        st.markdown("""
+        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9564012/" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+
+        **Study Design:** Randomized controlled trial with adult ADHD patients
+        **Frequency Used:** **15 Hz binaural beats** (beta range: 415 Hz right ear, 400 Hz left ear)
+
+        **Key Findings:**
+        -  **Significant improvement** in subjective studying performance (mean difference=2.7, p<0.001)
+        -  **Improvements maintained** across fortnightly follow-ups
+        -  No significant changes in standardized ADHD rating scales, but subjective performance clearly improved
+
+        **Application for ADHD:** This is the only RCT specifically testing binaural beats in diagnosed ADHD patients. The 15 Hz beta frequency appears to help with focus during studying tasks. Beta frequencies (13-30 Hz) are associated with active concentration and alert states.
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("###  Music Therapy for Down Syndrome: Key Research Papers")
+
+    with st.expander(" **40Hz Sensory Stimulation Improves Cognition in Down Syndrome Mice** (Islam, Jackson et al., 2025)", expanded=False):
+        st.markdown("""
+        <a href="https://www.technologynetworks.com/genomics/news/40hz-sensory-stimulation-improves-cognition-in-down-syndrome-mice-398950" target="_blank" style="color:#000000; font-weight:700; text-decoration: underline;">Link to Study</a>
+        **[Full Research](https://picower.mit.edu/news/down-syndrome-mice-40hz-light-and-sound-improve-cognition-neurogenesis-connectivity)**
+
+        **Study Design:** Preclinical study using Ts65Dn mouse model of Down syndrome at MIT Picower Institute
+        
+        **Intervention:** 40 Hz combined light and sound stimulation (GENUS), 1 hour daily for 3 weeks
+
+        **Key Findings:**
+        -  **Improved performance** on three different short-term memory tasks
+        -  **Enhanced hippocampal activity** and connectivity
+        -  **Promoted neurogenesis** (growth of new neurons)
+        -  **Increased indicators** of neural activity in the hippocampus
+
+        **Application for Down Syndrome:** This is groundbreaking research showing 40 Hz stimulation specifically helps cognitive deficits in Down syndrome. A human clinical trial is currently underway at MIT to test this in people with Down syndrome.
+        """)
+
+    with st.expander(" **Effect of 528 Hz Music on the Endocrine System and Autonomic Nervous System** (Akimoto et al., 2018)", expanded=False):
+        st.markdown("""
+        <a href=\"https://www.scirp.org/journal/paperinformation?paperid=87146\" target=\"_blank\" style=\"color:#000000; font-weight:700; text-decoration: underline;\">Link to Study</a>
+
+        **Study Design:** Controlled study with 9 healthy participants comparing 528 Hz vs 440 Hz music
+
+        **Intervention:** 5 minutes of soothing piano music at each frequency
+
+        **Key Findings (528 Hz condition):**
+        -  **Cortisol levels significantly decreased** (stress reduction)
+        -  **Chromogranin A tended to decrease** (stress marker)
+        - **Oxytocin significantly increased** (bonding/happiness hormone)
+        -  **Tension-anxiety scores significantly reduced** (p<0.0091)
+        - **Total Mood Disturbance scores significantly reduced** (p<0.0487)
+        -  **Autonomic nervous system** showed relaxation responses
+
+        -  **440 Hz condition**: No significant changes in any biomarkers
+
+        **Application:** This provides the strongest scientific evidence for 528 Hz as a healing frequency. The study used objective biomarkers rather than just subjective reports. The effect occurred after only 5 minutes, suggesting powerful physiological impact.
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **Effect of Music Engagement and Movement on Children with Down Syndrome** (Orff-Schulwerk Study, 2024)", expanded=False):
+        st.markdown("""
+        <a href=\"https://archive.conscientiabeam.com/index.php/61/article/download/3626/7913\" target=\"_blank\" style=\"color:#000000; font-weight:700; text-decoration: underline;\">Link to Study</a>
+
+        **Study Design:** Experimental study with children aged 7-10 with Down syndrome
+
+        **Intervention:** 8-week Orff-based Music Engagement and Movement (MEM) program
+
+        **Key Findings:**
+        - **Significantly improved attention span** in Down syndrome group compared to controls
+        -  **Significantly improved memory retention**
+        -  **Orff-Schulwerk approach** (rhythm, movement, singing, instruments) particularly effective
+
+        **Application for Down Syndrome:** Demonstrates that active music participation (not just listening) with rhythmic and movement components produces measurable cognitive improvements in children with Down syndrome.
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("###  Big Five Personality Traits and Music Preferences: Key Research Papers")
+
+    with st.expander("**Associations Between Personality Traits and Music Preference** (Boccia, 2020)", expanded=False):
+        st.markdown("""
+        <a href=\"https://digitalcommons.lindenwood.edu/cgi/viewcontent.cgi?article=1000&context=psych_journals\" target=\"_blank\" style=\"color:#000000; font-weight:700; text-decoration: underline;\">Link to Study</a>
+
+        **Study Design:** Empirical study with 175 participants
+        **Method:** Participants completed Big Five personality assessment and rated enjoyment of 15-second audio clips from 7 genres
+
+        **Key Findings - Overall Music Enjoyment:**
+        -  **Openness**: Significant positive correlation (r=.169, p=.013) - high Openness = enjoy MORE genres
+        -  **Extraversion**: Strong positive correlation (r=.275, p<.001) - high Extraversion = enjoy MORE genres
+        - **Agreeableness**: Positive correlation (r=.233, p=.001) - high Agreeableness = enjoy MORE genres
+        - **Neuroticism**: Significant negative correlation (r=−.186, p=.007) - LOW Neuroticism = enjoy MORE genres
+        - **Conscientiousness**: No significant relationship (r=.061, p=.212) - no difference in genre enjoyment
+
+        **Most Preferred Genres Overall:** Pop (130 participants), Rock (91), Rap (82)
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **The Structure of Musical Preferences: A Five-Factor Model** (Rentfrow, Goldberg & Levitin, 2011)", expanded=False):
+        st.markdown("""
+        <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC3138530/\" target=\"_blank\" style=\"color:#000000; font-weight:700; text-decoration: underline;\">Link to Study</a>
+
+        **Study Design:** Multi-study factor analysis developing the MUSIC model
+
+        **Major Contribution:** Moved beyond genre-based assessment to use actual music excerpts
+
+        **Five Music Preference Factors Identified:**
+        -  **Mellow**: Smooth and relaxing styles
+        -  **Urban**: Rhythmic and percussive (rap, funk, acid jazz)
+        -  **Sophisticated**: Classical, operatic, world, jazz
+        - **Intense**: Loud, forceful, energetic
+        -  **Campestral**: Direct, rootsy music (country, singer-songwriter)
+        """, unsafe_allow_html=True)
+
+    with st.expander(" **Nirvana for Neuroticism: How Musical Preferences Match Personality Traits Around the World** (Greenberg et al., 2022)", expanded=False):
+        st.markdown("""
+        <a href=\"https://www.technologynetworks.com/neuroscience/news/nirvana-for-neuroticism-how-musical-preferences-match-personality-traits-around-the-world-358429\" target=\"_blank\" style=\"color:#000000; font-weight:700; text-decoration: underline;\">Link to Study</a>
+
+        **Study Design:** Large-scale international study (350,000+ participants from 50+ countries)
+
+        **Key Findings - Universal Patterns:**
+        -  **Extraversion**: Correlated with Contemporary/upbeat music (Ed Sheeran's "Shivers") - particularly strong around equator and Central/South America
+        -  **Openness**: Correlated with "Sophisticated music" (David Bowie's "Space Oddity", Nina Simone)
+        -  **Agreeableness**: Correlated with upbeat/conventional music (Marvin Gaye's "What's Going On", Lady Gaga's "Shallow")
+        -  **Conscientiousness**: Negative correlation with intense music (unlikely to enjoy Rage Against the Machine)
+        -  **Neuroticism**: Correlated with **Intense musical styles** (Nirvana's "Smells Like Teen Spirit"), reflecting "inner angst and frustration"
+
+        **Surprising Finding:** Neuroticism did not clearly favor either sad music (for catharsis) or upbeat music (mood shift), but instead preferred intense styles.
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("###  Integrated Model: How to Apply This Research")
+
+    with st.expander(" **Application to Dementia Music Therapy**", expanded=False):
+        st.markdown("""
+        ** Individualized vs. Generic Music:**
+        -  Personalization matters, BUT account for depression levels, apathy, and cognitive impairment severity
+        -  Someone with high depression might experience increased sadness even with their favorite music
+
+        ** Active vs. Passive Music Engagement:**
+        -  Active music-making (singing, playing instruments) is more effective than passive listening
+        -  Especially for depression - therapist-delivered active therapy more effective than music listening
+
+        **Autobiographical Memory Activation:**
+        -  Music-evoked autobiographical memories (MEAMs) remain intact in AD
+        -  Even unfamiliar music (Vivaldi's "Spring") enhanced memory recall and reduced trait anxiety
+
+        ** Caregiver-Delivered Interventions:**
+        -  Family caregivers can deliver effective music interventions at home
+        -  Mechanisms: neural entrainment, auditory-motor coupling, activating arousal-mood pathways
+        """)
+
+    with st.expander("**Application to Personality-Matched Music Selection**", expanded=False):
+        st.markdown("""
+        ** Openness - The "Omnivore" Trait:**
+        -  Offer diverse genres, sophisticated music, world music, jazz, classical, experimental styles
+        -  High Openness predicts enjoying MORE genres overall (r=.169-.25)
+
+        ** Extraversion - The "Energetic/Social" Trait:**
+        -  Provide contemporary, rhythmic, danceable, upbeat music (pop, electronic, country)
+        -  Extraversion strongly predicts enjoyment of contemporary, upbeat music (r=.275)
+
+        ** Agreeableness - The "Harmonious" Trait:**
+        -  Select positive-valence, conventional, communal music (pop, country, soul)
+        -  Agreeable individuals prefer upbeat, conventional, positive-valence music
+
+        ** Neuroticism - The "Intense/Anxious" Trait:**
+        -  **For catharsis**: Intense, emotionally expressive music (alternative, intense rock)
+        -  **For relaxation**: Monitor carefully—high-neurotic individuals may avoid mellow music
+        -  **Use physiological measures** (heart rate, cortisol) not just self-reports
+
+        ** Conscientiousness - The "Neutral" Trait:**
+        -  Focus on lyrics/meaning rather than sound characteristics
+        -  Relatively neutral for music enjoyment
+        """)
 
     st.markdown("""
     <div style='background: linear-gradient(135deg, rgba(163, 177, 138, 0.2) 0%, rgba(88, 129, 87, 0.2) 100%);
@@ -2604,7 +3134,7 @@ def page_about():
     # for feature in rl_features:
     #     st.markdown(f"• {feature}")
     st.markdown("### Developer")
-    st.markdown("**Moodifai-Ashiq Sazid**")
+    st.markdown("**TheramuseRX-Ashiq Sazid**")
  
 # MAIN APP
 
