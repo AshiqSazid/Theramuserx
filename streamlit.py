@@ -1992,7 +1992,11 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
     # Get TheraMuse instance
     try:
         theramuse = get_theramuse()
-        st.success("Database connected successfully!")
+        # Check if using in-memory database (Streamlit Cloud)
+        if hasattr(theramuse.db, 'db_path') and theramuse.db.db_path == ":memory:":
+            st.info("🌐 Running on Streamlit Cloud with temporary storage. Your data will be saved during this session.")
+        else:
+            st.success("✅ Database connected successfully!")
     except Exception as e:
         st.error(f"Database connection error: {e}")
         st.stop()
@@ -2482,7 +2486,11 @@ def page_analytics():
     
     try:
         theramuse = get_theramuse()
-        st.success("Database connected successfully!")
+        # Check if using in-memory database (Streamlit Cloud)
+        if hasattr(theramuse.db, 'db_path') and theramuse.db.db_path == ":memory:":
+            st.info("🌐 Running on Streamlit Cloud with temporary storage. Analytics data available for current session only.")
+        else:
+            st.success("✅ Database connected successfully!")
     except Exception as e:
         st.error(f"Database connection error: {e}")
         st.stop()
