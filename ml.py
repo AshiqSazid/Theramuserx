@@ -870,7 +870,7 @@ class DementiaTherapy:
         # Filter songs by location relevance
         valid_songs = []
         for song in fetched_songs:
-            if self._validate_location_relevance(song, location):
+            if self.youtube_api._validate_location_relevance(song, location):
                 valid_songs.append(song)
                 if len(valid_songs) >= remaining:
                     break
