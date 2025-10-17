@@ -1835,9 +1835,63 @@ class DatabaseManager:
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
 
+    def _migrate_therapy_sessions_table(self):
+        """Migrate therapy_sessions table if it has old schema"""
+        cursor = self.conn.cursor()
+
+        try:
+            # Check if table exists and get its schema
+            cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='therapy_sessions'")
+            table_info = cursor.fetchone()
+
+            if table_info:
+                schema = table_info[0]
+                # Check if this is the old schema (missing session_id as PRIMARY KEY)
+                if 'session_id TEXT PRIMARY KEY' not in schema:
+                    print(" Migrating therapy_sessions table schema...")
+
+                    # Backup existing data
+                    cursor.execute("ALTER TABLE therapy_sessions RENAME TO therapy_sessions_old")
+
+                    # Create new table with correct schema
+                    cursor.execute("""
+                        CREATE TABLE therapy_sessions (
+                            session_id TEXT PRIMARY KEY,
+                            patient_id TEXT NOT NULL,
+                            condition TEXT NOT NULL,
+                            therapy_method TEXT,
+                            total_songs INTEGER,
+                            exploration_rate REAL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """)
+
+                    # Try to migrate data from old table
+                    try:
+                        cursor.execute("""
+                            INSERT INTO therapy_sessions
+                            SELECT session_id, patient_id, condition, therapy_method,
+                                   total_songs, exploration_rate, created_at
+                            FROM therapy_sessions_old
+                        """)
+                        print("  Data migrated successfully")
+                    except Exception as e:
+                        print(f"  Could not migrate old data: {e}")
+
+                    # Drop old table
+                    cursor.execute("DROP TABLE therapy_sessions_old")
+                    self.conn.commit()
+
+        except Exception as e:
+            print(f"  Migration not needed or failed: {e}")
+            self.conn.rollback()
+
     def create_tables(self):
         """Create all necessary tables"""
         cursor = self.conn.cursor()
+
+        # Check if we need to migrate the therapy_sessions table
+        self._migrate_therapy_sessions_table()
 
         # Therapy sessions table
         cursor.execute("""
@@ -2059,7 +2113,7 @@ class TheraMuse:
     Orchestrates all therapy functions and integrates Thompson Sampling
     """
 
-    def __init__(self, model_path: str = "theramuse_model.pkl", db_path: str = "therapy_therapy.db"):
+    def __init__(self, model_path: str = "theramuse_model.pkl", db_path: str = "theramuse.db"):
         """
         STEP 3: Initialize TheraMuse with all therapy modules
         Sets up all components for music therapy recommendation system
