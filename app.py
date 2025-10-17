@@ -50,18 +50,52 @@ def load_color_schema():
         'accent_dark': '#344E41'
     }
 
-# Import from main.py
-from ml import (
-    TheraMuse, 
-    DementiaTherapy, 
-    DownSyndromeTherapy, 
-    ADHDTherapy,
-    YouTubeAPI,
-    BangladeshiGenerationalMatrix,
-    BigFivePersonalityMapping,
-    LinearThompsonSampling,
-    DatabaseManager
-)
+# Import from ml.py - Added robust error handling for Streamlit Cloud
+import sys
+import os
+from pathlib import Path
+
+# Add current directory to Python path if not already there
+current_dir = Path(__file__).parent.absolute()
+if str(current_dir) not in sys.path:
+    sys.path.insert(0, str(current_dir))
+
+# Debug: Print current path for troubleshooting
+if "STREAMLIT_SERVER" in os.environ:
+    print(f"Streamlit Cloud - Current directory: {current_dir}")
+    print(f"Python path: {sys.path[:3]}")
+    print(f"Files in directory: {list(current_dir.glob('*.py'))[:5]}")
+
+try:
+    import ml
+    # Extract classes from ml module
+    TheraMuse = ml.TheraMuse
+    DementiaTherapy = ml.DementiaTherapy
+    DownSyndromeTherapy = ml.DownSyndromeTherapy
+    ADHDTherapy = ml.ADHDTherapy
+    YouTubeAPI = ml.YouTubeAPI
+    BangladeshiGenerationalMatrix = ml.BangladeshiGenerationalMatrix
+    BigFivePersonalityMapping = ml.BigFivePersonalityMapping
+    LinearThompsonSampling = ml.LinearThompsonSampling
+    DatabaseManager = ml.DatabaseManager
+
+    if "STREAMLIT_SERVER" in os.environ:
+        print("✓ Successfully imported all classes from ml module")
+
+except ImportError as e:
+    error_msg = f"Import Error: Failed to import required modules from ml.py"
+    if "STREAMLIT_SERVER" in os.environ:
+        error_msg += f"\n\nDebug info:\n- Current directory: {current_dir}\n- Python path: {sys.path}\n- Error: {str(e)}"
+
+    st.error(error_msg)
+    st.error("Please ensure ml.py exists in the same directory as streamlit.py")
+    st.stop()
+except Exception as e:
+    st.error(f"Unexpected error during import: {str(e)}")
+    if "STREAMLIT_SERVER" in os.environ:
+        import traceback
+        st.error(f"Full traceback: {traceback.format_exc()}")
+    st.stop()
 
 # JavaScript to prevent Enter key from submitting forms in text input fields
 st.markdown("""
