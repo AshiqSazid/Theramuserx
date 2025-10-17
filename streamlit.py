@@ -742,10 +742,31 @@ def get_condition_code(condition: str) -> str:
     }
     return mapping.get(condition, "dementia")
 
+# HELPER FUNCTIONS
+def get_database_path():
+    """Get the correct database path for different environments"""
+    import os
+
+    # For Streamlit Cloud, use a temporary directory or relative path
+    if "STREAMLIT_SERVER" in os.environ or not os.path.exists("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app"):
+        # Use the current working directory for Streamlit Cloud
+        return Path("theramuse.db")
+    else:
+        # Local development path
+        return Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+
 # PATIENT DATABASE FUNCTIONS
 def get_patient_db_connection():
     """Get connection to patient database"""
-    db_path = Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+    import tempfile
+    import os
+
+    # Get the correct database path
+    db_path = get_database_path()
+
+    # Ensure the directory exists
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
@@ -1822,7 +1843,7 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
     
     # Get TheraMuse instance
     if 'theramuse' not in st.session_state:
-        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+        st.session_state.theramuse = TheraMuse(db_path=str(get_database_path()))
 
     theramuse = st.session_state.theramuse
     
@@ -2208,7 +2229,7 @@ def page_intake():
             with st.spinner(f" TheramuseRX is generating personalized recommendations "):
                 try:
                     if 'theramuse' not in st.session_state:
-                        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+                        st.session_state.theramuse = TheraMuse(db_path=str(get_database_path()))
 
                     theramuse = st.session_state.theramuse
 
@@ -2358,7 +2379,7 @@ def page_analytics():
     """, unsafe_allow_html=True)
     
     if 'theramuse' not in st.session_state:
-        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+        st.session_state.theramuse = TheraMuse(db_path=str(get_database_path()))
 
     theramuse = st.session_state.theramuse
     analytics = theramuse.get_analytics()
