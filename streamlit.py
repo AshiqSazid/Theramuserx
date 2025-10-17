@@ -52,9 +52,9 @@ def load_color_schema():
 
 # Import from main.py
 from ml import (
-    TheraMuse,
-    DementiaTherapy,
-    DownSyndromeTherapy,
+    TheraMuse, 
+    DementiaTherapy, 
+    DownSyndromeTherapy, 
     ADHDTherapy,
     YouTubeAPI,
     BangladeshiGenerationalMatrix,
@@ -62,11 +62,6 @@ from ml import (
     LinearThompsonSampling,
     DatabaseManager
 )
-
-@st.cache_resource
-def get_theramuse():
-    """Get cached TheraMuse instance"""
-    return TheraMuse()
 
 # JavaScript to prevent Enter key from submitting forms in text input fields
 st.markdown("""
@@ -155,26 +150,26 @@ st.markdown("""
 <style>
 /* Column headers */
 [data-testid="stDataFrame"] [role="columnheader"] {
-    background-color: #a8b894 !important;   /* same as your background */
-    color: #e8dfb0 !important;              /* warm beige header text */
-    font-weight: 600 !important;
-    border: none !important;
+    background-color: #a8b894 ;   /* same as your background */
+    color: #e8dfb0 ;              /* warm beige header text */
+    font-weight: 600 ;
+    border: none ;
 }
 
 /* Table cells */
 [data-testid="stDataFrame"] [role="gridcell"] {
-    background-color: #a8b894 !important;   /* same olive background */
-    color: #e8dfb0 !important;              /* beige text for cells */
-    border: none !important;
+    background-color: #a8b894 ;   /* same olive background */
+    color: #e8dfb0 ;              /* beige text for cells */
+    border: none ;
 }
 
 /* Rounded corners and hover highlight */
 [data-testid="stDataFrame"] {
-    border-radius: 12px !important;
-    overflow: hidden !important;
+    border-radius: 12px ;
+    overflow: hidden ;
 }
 [data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
-    background-color: #b7c3a2 !important;   /* gentle hover highlight */
+    background-color: #b7c3a2 ;   /* gentle hover highlight */
 }
 </style>
 
@@ -407,10 +402,10 @@ st.markdown("""
     
     /* Sidebar Navigation Colors */
     [data-testid="stSidebar"] [data-testid="stRadio"] label p {
-        color: #E8DDB5 !important;
+        color: #FDFBF7 ;
     }
     [data-testid="stSidebar"] [data-testid="stRadio"] label {
-        color: #E8DDB5 !important;
+        color: #FDFBF7 ;
     }
     
     /* Metric Cards */
@@ -450,46 +445,47 @@ st.markdown("""
     
     /* Premium Buttons - Enhanced for better functionality */
     .stButton>button {
-        background: linear-gradient(135deg, #A3B18A 0%, #588157 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 0.75rem 1.5rem !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        letter-spacing: 0.02em !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 16px rgba(163, 177, 138, 0.3) !important;
-        cursor: pointer !important;
-        pointer-events: auto !important;
-        position: relative !important;
-        z-index: 10 !important;
+        background: linear-gradient(135deg, #338AFF 0%, #1E6FFF 100%) ;
+        color: white ;
+        border: none ;
+        border-radius: 12px ;
+        padding: 0.75rem 1.5rem ;
+        font-weight: 600 ;
+        font-size: 0.95rem ;
+        letter-spacing: 0.02em ;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) ;
+        box-shadow: 0 4px 16px rgba(51, 138, 255, 0.3) ;
+        cursor: pointer ;
+        pointer-events: auto ;
+        position: relative ;
+        z-index: 10 ;
     }
 
     .stButton>button:hover {
-        background: linear-gradient(135deg, #588157 0%, #3a5a40 100%) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 24px rgba(163, 177, 138, 0.5) !important;
+        background: linear-gradient(135deg, #1E6FFF 0%, #0D5BFF 100%) ;
+        transform: translateY(-2px) ;
+        box-shadow: 0 8px 24px rgba(51, 138, 255, 0.5) ;
     }
 
     .stButton>button:active {
-        transform: translateY(0) !important;
-        box-shadow: 0 4px 16px rgba(163, 177, 138, 0.3) !important;
+        transform: translateY(0) ;
+        box-shadow: 0 4px 16px rgba(51, 138, 255, 0.3) ;
     }
 
     /* Ensure buttons are clickable and not blocked */
     .stButton {
-        pointer-events: auto !important;
-        z-index: 10 !important;
-        position: relative !important;
+        pointer-events: auto ;
+        z-index: 10 ;
+        position: relative ;
     }
 
     /* Fix for buttons in containers */
     div.stButton > button {
-        pointer-events: auto !important;
-        z-index: 10 !important;
-        position: relative !important;
+        pointer-events: auto ;
+        z-index: 10 ;
+        position: relative ;
     }
+
     
     /* Feedback Buttons */
     .feedback-button {
@@ -499,15 +495,15 @@ st.markdown("""
     
     /* Expander Premium Style */
     .streamlit-expanderHeader {
-        background: linear-gradient(135deg, rgba(163, 177, 138, 0.1) 0%, rgba(88, 129, 87, 0.1) 100%);
+        background: linear-gradient(135deg, rgba(51, 138, 255, 0.1) 0%, rgba(13, 91, 255, 0.1) 100%);
         border-radius: 12px;
-        border: 1px solid rgba(163, 177, 138, 0.2);
+        border: 1px solid rgba(51, 138, 255, 0.2);
         transition: all 0.3s ease;
     }
-    
+
     .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, rgba(163, 177, 138, 0.2) 0%, rgba(88, 129, 87, 0.2) 100%);
-        border-color: rgba(163, 177, 138, 0.4);
+        background: linear-gradient(135deg, rgba(51, 138, 255, 0.2) 0%, rgba(13, 91, 255, 0.2) 100%);
+        border-color: rgba(51, 138, 255, 0.4);
     }
     
     /* Category Badge */
@@ -557,115 +553,59 @@ st.markdown("""
         background: linear-gradient(180deg, #588157 0%, #3a5a40 100%);
     }
     
-    /* Tab Styling */
+    /* Tab Styling - Updated to #338AFF theme */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(255, 255, 255, 0.03);
+        background-color: rgba(51, 138, 255, 0.1);
         border-radius: 12px;
-        padding: 0.75rem 1.5rem;
-        color: rgba(255, 255, 255, 0.7);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(51, 138, 255, 0.2);
+        padding: 4px;
     }
-    
+
+    .stTabs [data-baseweb="tab"] {
+        background: linear-gradient(135deg, #338AFF 0%, #1E6FFF 100%);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+        transition: all 0.3s ease;
+        border: none;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(51, 138, 255, 0.2);
+    }
+
+    .stTabs [aria-selected="true"] [data-baseweb="tab"] {
+        background: linear-gradient(135deg, #1E6FFF 0%, #0D5BFF 100%);
+        box-shadow: 0 4px 12px rgba(51, 138, 255, 0.4);
+        transform: translateY(-1px);
+    }
+
     .stTabs [data-baseweb="tab"]:hover {
-        background: rgba(163, 177, 138, 0.1);
-        color: #E8DDB5;
-        border-color: rgba(163, 177, 138, 0.3);
+        background: linear-gradient(135deg, #1E6FFF 0%, #0D5BFF 100%);
+        color: white;
+        box-shadow: 0 6px 16px rgba(51, 138, 255, 0.5);
+        transform: translateY(-1px);
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, rgba(163, 177, 138, 0.2) 0%, rgba(88, 129, 87, 0.2) 100%) !important;
-        color: #E8DDB5 !important;
-        border-color: rgba(163, 177, 138, 0.4) !important;
+        background: linear-gradient(135deg, rgba(51, 138, 255, 0.2) 0%, rgba(13, 91, 255, 0.2) 100%);
+        color: white;
+        border-color: rgba(51, 138, 255, 0.4);
     }
     
     /* Form Elements */
     .stTextInput>div>div>input,
     .stSelectbox>div>div>select {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        color: white !important;
-        transition: all 0.3s ease !important;
+        background: rgba(255, 255, 255, 0.05) ;
+        border: 1px solid rgba(255, 255, 255, 0.1) ;
+        border-radius: 12px ;
+        color: white ;
+        transition: all 0.3s ease ;
     }
     
     .stTextInput>div>div>input:focus,
     .stSelectbox>div>div>select:focus {
-        border-color: rgba(163, 177, 138, 0.5) !important;
-        box-shadow: 0 0 0 2px rgba(163, 177, 138, 0.2) !important;
-    }
-
-    /* Enhanced Dynamic Slider Design */
-    .stSlider label {
-        color: #000000 !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        margin-bottom: 15px !important;
-    }
-
-    /* Default slider track with animated gradient */
-    .stSlider > div[data-baseweb="slider"] > div > div {
-        background: linear-gradient(90deg,
-            #FF6B6B 0%,
-            #FFE66D 25%,
-            #95E77E 50%,
-            #4ECDC4 75%,
-            #45B7D1 100%) !important;
-        height: 8px !important;
-        border-radius: 4px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-        transition: all 0.3s ease !important;
-    }
-
-    /* Enhanced slider thumb with hover effects */
-    .stSlider > div[data-baseweb="slider"] > div > div > div[role="slider"] {
-        background: linear-gradient(135deg, #a8b894 0%, #5B9C96 100%) !important;
-        border: 3px solid #FFFFFF !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
-        transition: all 0.3s ease !important;
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .stSlider > div[data-baseweb="slider"] > div > div > div[role="slider"]:hover {
-        transform: scale(1.15) !important;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
-        background: linear-gradient(135deg, #5B9C96 0%, #a8b894 100%) !important;
-    }
-
-    /* Slider value text with enhanced styling */
-    .stSlider > div[data-baseweb="slider"] > div > div > div {
-        color: #000000 !important;
-        font-weight: 700 !important;
-        font-size: 1rem !important;
-    }
-
-    /* Animated slider container - fixed to not interfere with other elements */
-    .stSlider > div[data-baseweb="slider"] {
-        transition: all 0.3s ease !important;
-        pointer-events: auto !important;
-        position: relative !important;
-        z-index: 1 !important;
-    }
-
-    .stSlider > div[data-baseweb="slider"]:hover {
-        transform: translateY(-2px) !important;
-    }
-
-    /* Pulse animation for focused sliders - contained */
-    @keyframes sliderPulse {
-        0% { box-shadow: 0 0 0 0 rgba(91, 156, 150, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(91, 156, 150, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(91, 156, 150, 0); }
-    }
-
-    .stSlider > div[data-baseweb="slider"]:focus-within {
-        animation: sliderPulse 2s infinite !important;
-        transform: none !important; /* Prevent transform conflicts */
+        border-color: rgba(163, 177, 138, 0.5) ;
+        box-shadow: 0 0 0 2px rgba(163, 177, 138, 0.2) ;
     }
 
     /* Success/Error Messages */
@@ -688,34 +628,34 @@ st.markdown("""
     
     /* Loading Spinner */
     .stSpinner > div {
-        border-color: #A3B18A transparent transparent transparent !important;
+        border-color: #A3B18A transparent transparent transparent ;
     }
     
     /* Premium Section Headers */
     h1, h2, h3 {
-        color: #E8DDB5 !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.02em !important;
+        color: #E8DDB5 ;
+        font-weight: 700 ;
+        letter-spacing: -0.02em ;
     }
     
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
+        background: #338aff !important;
         backdrop-filter: blur(20px);
     }
     
     [data-testid="stSidebar"] .stRadio > label {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         padding: 0.75rem;
         margin: 0.3rem 0;
         transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     [data-testid="stSidebar"] .stRadio > label:hover {
-        background: rgba(163, 177, 138, 0.1);
-        border-color: rgba(163, 177, 138, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -775,8 +715,7 @@ def render_logo(size=150):
 }
 </style>
 
-<h1 class='typing-header'> TheramuseRx</h1>
-<p class='sub-header'> Music Therapy for Mind & Soul</p>
+
 """, unsafe_allow_html=True)
 
 
@@ -791,156 +730,8 @@ def reverse_1to7(score: float) -> float:
     return 8.0 - score
 
 def slider_with_ticks(label: str, key: str) -> float:
-    """Create a dynamic slider with track color that moves with the thumb"""
-    # Store the previous value to detect changes
-    if f'{key}_prev_value' not in st.session_state:
-        st.session_state[f'{key}_prev_value'] = 4
-
-    value = st.slider(label, 1, 7, st.session_state[f'{key}_prev_value'], key=key)
-
-    # Calculate the position of the thumb (0-100%)
-    position = ((value - 1) / 6) * 100  # Convert 1-7 range to 0-100%
-
-    # Dynamic color scheme based on value
-    if value <= 2:
-        left_color = "#FF6B6B"  # Red for low values
-        right_color = "#4ECDC4"  # Teal for high values
-        thumb_color = "#FF6B6B"
-    elif value <= 4:
-        left_color = "#FFE66D"  # Yellow for medium-low values
-        right_color = "#4ECDC4"  # Teal for high values
-        thumb_color = "#FFE66D"
-    elif value <= 6:
-        left_color = "#95E77E"  # Light green for medium-high values
-        right_color = "#4ECDC4"  # Teal for high values
-        thumb_color = "#95E77E"
-    else:
-        left_color = "#4ECDC4"  # Teal for very high values
-        right_color = "#45B7D1"  # Blue for maximum values
-        thumb_color = "#4ECDC4"
-
-    # Create dynamic track color with smooth gradient
-    st.markdown(f"""
-    <style>
-    .dynamic-slider-{key} > div > div {{
-        background: linear-gradient(to right,
-            {left_color} 0%,
-            {left_color} {position}%.1f%,
-            {right_color} {position}%.1f%,
-            {right_color} 100%) !important;
-        height: 8px !important;
-        border-radius: 4px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-        transition: all 0.3s ease !important;
-    }}
-
-    /* Dynamic thumb color */
-    .dynamic-slider-{key} > div > div > div[role="slider"] {{
-        background-color: {thumb_color} !important;
-        border: 3px solid #FFFFFF !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
-        transition: all 0.3s ease !important;
-    }}
-
-    .dynamic-slider-{key} > div > div > div[role="slider"]:hover {{
-        transform: scale(1.1) !important;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
-    }}
-
-    /* Animated glow effect for active slider */
-    @keyframes glow-{key} {{
-        0% {{ box-shadow: 0 0 5px {thumb_color}40; }}
-        50% {{ box-shadow: 0 0 20px {thumb_color}60; }}
-        100% {{ box-shadow: 0 0 5px {thumb_color}40; }}
-    }}
-
-    .dynamic-slider-{key}:focus-within > div > div {{
-        animation: glow-{key} 2s ease-in-out infinite !important;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Apply the class to the slider container with improved, non-interfering JavaScript
-    st.markdown(f"""
-    <script>
-    (function() {{
-        function initSlider_{key}() {{
-            // Try multiple selectors for different Streamlit versions
-            var sliderElements = document.querySelectorAll('[data-testid="stSlider-{key}"], .stSlider-{key}, div[data-testid="stSlider"] input[type="range"]');
-            if (sliderElements.length > 0) {{
-                sliderElements.forEach(function(element) {{
-                    // Only add to direct slider container, not parent elements
-                    if (element.closest('[data-testid="stSlider-{key}"]') === element) {{
-                        element.classList.add('dynamic-slider-{key}');
-                    }}
-                }});
-                return;
-            }}
-
-            // More careful fallback to avoid interfering with other elements
-            var allSliders = document.querySelectorAll('[data-testid*="stSlider"]');
-            allSliders.forEach(function(slider) {{
-                // Only target sliders that actually contain our key
-                var hasCorrectKey = slider.querySelector('[data-testid*="{key}"]') ||
-                                 slider.innerHTML.includes('data-testid="stSlider-{key}"') ||
-                                 (slider.querySelector('input[type="range"]') &&
-                                  slider.querySelector('input[type="range"]').value == "{value}");
-
-                if (hasCorrectKey) {{
-                    slider.classList.add('dynamic-slider-{key}');
-                }}
-            }});
-        }}
-
-        // Initialize after DOM is ready
-        if (document.readyState === 'loading') {{
-            document.addEventListener('DOMContentLoaded', initSlider_{key});
-        }} else {{
-            initSlider_{key}();
-        }}
-
-        // Also try after a short delay for Streamlit rendering
-        setTimeout(initSlider_{key}, 200);
-    }})();
-    </script>
-    """, unsafe_allow_html=True)
-
-    # Store current value for next interaction
-    st.session_state[f'{key}_prev_value'] = value
-
-    # Add enhanced number labels below the slider with dynamic colors
-    number_colors = []
-    for i in range(1, 8):
-        if i <= 2:
-            color = "#FF6B6B"
-        elif i <= 4:
-            color = "#FFE66D"
-        elif i <= 6:
-            color = "#95E77E"
-        else:
-            color = "#4ECDC4"
-        number_colors.append(color)
-
-    st.markdown(f"""
-    <div style='display: flex; justify-content: space-between; margin-top: -5px; margin-bottom: 15px; padding: 0 5px;'>
-        <span style='color: {number_colors[0]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>1</span>
-        <span style='color: {number_colors[1]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>2</span>
-        <span style='color: {number_colors[2]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>3</span>
-        <span style='color: {number_colors[3]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>4</span>
-        <span style='color: {number_colors[4]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>5</span>
-        <span style='color: {number_colors[5]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>6</span>
-        <span style='color: {number_colors[6]}; font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);'>7</span>
-    </div>
-
-    <!-- Value indicator -->
-    <div style='text-align: center; margin-top: -10px; margin-bottom: 10px;'>
-        <span style='display: inline-block; background: {thumb_color}; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);'>
-            <span style='color: #000000; font-weight: 600;'>Current Value: {value}</span>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    return value
+    """Render a standard Streamlit slider."""
+    return st.slider(label, min_value=1, max_value=7, value=4, key=key)
 
 def get_condition_code(condition: str) -> str:
     """Map condition names to codes used in main.py"""
@@ -954,27 +745,7 @@ def get_condition_code(condition: str) -> str:
 # PATIENT DATABASE FUNCTIONS
 def get_patient_db_connection():
     """Get connection to patient database"""
-    # Use relative path - check multiple possible locations
-    import os
-
-    # Get the directory where the script is located
-    script_dir = Path(__file__).parent
-
-    # Possible database locations
-    possible_paths = [
-        script_dir / "theramuse.db",  # Same directory as script
-        Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db"),  # Original path
-        Path.home() / "Documents/ubuntu/thera/theramuse_app/theramuse.db",  # Home relative
-    ]
-
-    for db_path in possible_paths:
-        if db_path.exists():
-            break
-    else:
-        # If no database file exists, create one in the script directory
-        db_path = script_dir / "theramuse.db"
-        db_path.touch()  # Create empty file
-
+    db_path = Path("/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
@@ -1303,32 +1074,32 @@ def page_patient_database():
         with col1:
             st.markdown(f"""
             <div class='metric-card'>
-                <h3>Total Patients</h3>
-                <h2>{total_patients}</h2>
+                <h3 style='color:#364153;'>Total Patients</h3>
+                <h2 style='color:#364153;'>{total_patients}</h2>
             </div>
             """, unsafe_allow_html=True)
 
         with col2:
             st.markdown(f"""
             <div class='metric-card'>
-                <h3>Therapy Sessions</h3>
-                <h2>{total_sessions}</h2>
+                <h3 style='color:#364153;'>Therapy Sessions</h3>
+                <h2 style='color:#364153;'>{total_sessions}</h2>
             </div>
             """, unsafe_allow_html=True)
 
         with col3:
             st.markdown(f"""
             <div class='metric-card'>
-                <h3>Song Recommendations</h3>
-                <h2>{total_recommendations}</h2>
+                <h3 style='color:#364153;'>Song Recommendations</h3>
+                <h2 style='color:#364153;'>{total_recommendations}</h2>
             </div>
             """, unsafe_allow_html=True)
 
         with col4:
             st.markdown(f"""
             <div class='metric-card'>
-                <h3>Feedback Recorded</h3>
-                <h2>{total_feedback}</h2>
+                <h3 style='color:#364153;'>Feedback Recorded</h3>
+                <h2 style='color:#364153;'>{total_feedback}</h2>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1337,7 +1108,10 @@ def page_patient_database():
         return
 
     # Advanced filters and search
-    st.markdown("###  Advanced Search & Filters")
+    st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Advanced Search & Filters</h3>',
+    unsafe_allow_html=True
+)
 
     col1, col2, col3 = st.columns(3)
 
@@ -1405,7 +1179,10 @@ def page_patient_database():
             col1, col2, col3 = st.columns([2, 1, 1])
 
             with col1:
-                st.markdown("####  Patient Information")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Patient Information</h3>',
+    unsafe_allow_html=True
+)
                 st.write(f"**ID:** {patient_info[0]}")
                 st.write(f"**Age:** {patient_info[2]}")
                 st.write(f"**Condition:** {patient_info[3].title()}")
@@ -1413,7 +1190,10 @@ def page_patient_database():
                     st.write(f"**Registered:** {patient_info[4]}")
 
             with col2:
-                st.markdown("####  Personality Profile")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Personality Profile</h3>',
+    unsafe_allow_html=True
+)
                 if big5_scores:
                     for trait, score in zip(['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism'], big5_scores[:5]):
                         if score > 0:
@@ -1423,14 +1203,20 @@ def page_patient_database():
                     st.info("No personality data")
 
             with col3:
-                st.markdown("####  Activity Summary")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Activity Summary</h3>',
+    unsafe_allow_html=True
+)
                 st.metric("Sessions", len(sessions))
                 st.metric("Songs", len(recommendations))
                 st.metric("Feedback", len(feedback))
 
             # Therapy Sessions
             if sessions:
-                st.markdown("####  Therapy Sessions")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Therapy Sessions</h3>',
+    unsafe_allow_html=True
+)
                 session_df = pd.DataFrame(sessions,
                                          columns=['Session ID', 'Date', 'Songs Recommended'])
                 if not session_df.empty:
@@ -1439,7 +1225,10 @@ def page_patient_database():
 
             # Song Recommendations
             if recommendations:
-                st.markdown("#### 🎵 Song Recommendations")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">🎵 Song Recommendations</h3>',
+    unsafe_allow_html=True
+)
 
                 # Group recommendations by category
                 categories = {}
@@ -1466,7 +1255,10 @@ def page_patient_database():
 
             # Feedback Analysis
             if feedback:
-                st.markdown("####  Feedback Analysis")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Feedback Analysis</h3>',
+    unsafe_allow_html=True
+)
 
                 feedback_counts = {}
                 for fb in feedback:
@@ -1485,7 +1277,10 @@ def page_patient_database():
                         st.metric("⏭ Skips", feedback_counts['skip'])
 
                 # Recent feedback
-                st.markdown("**Recent Feedback:**")
+                st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Recent Feedback:</h3>',
+    unsafe_allow_html=True
+)
                 for fb in feedback[:3]:
                     emoji = {"like": "", "dislike": "", "skip": "", "neutral": ""}.get(fb[0], "")
                     st.write(f"{emoji} {fb[0].title()} - {fb[2] if len(fb) > 2 else 'N/A'}")
@@ -1766,8 +1561,21 @@ def render_download_options(patient_info: Dict, recommendations: Dict, big5_scor
     """Render download options at the end of the page"""
     st.markdown("---")
 
+    # Scroll to Top Button - Goes to Personalized Music Recommendations
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        if st.button("⬆ Scroll to Top", key="btn_scroll_to_recommendations", use_container_width=True):
+            # Set session state flag to scroll to recommendations
+            st.session_state._scroll_to_recommendations_flag = True
+            # Also add a URL fragment for fallback
+            st.query_params.scroll = "recommendations"
+            st.rerun()
+
     # Research Evidence Section
-    st.markdown("## Research Evidence")
+    st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Research Evidence</h3>',
+    unsafe_allow_html=True
+)
     st.write("Scientific evidence supporting music therapy for various conditions and personality-based music preferences")
 
     if st.button(" View Research Evidence", key="research_evidence_btn", width='stretch'):
@@ -1806,17 +1614,17 @@ def render_download_options(patient_info: Dict, recommendations: Dict, big5_scor
                display: block;
                width: 100%;
                padding: 0.75rem 1.5rem;
-               background: linear-gradient(135deg, #A3B18A 0%, #588157 100%);
+               background: linear-gradient(135deg, #338AFF 0%, #1E6FFF 100%);
                color: white;
                text-decoration: none;
                border-radius: 12px;
                font-weight: 600;
                text-align: center;
                transition: all 0.3s ease;
-               box-shadow: 0 4px 16px rgba(163, 177, 138, 0.3);
+               box-shadow: 0 4px 16px rgba(51, 138, 255, 0.3);
                margin: 0;
         ">
-             Download PDF 
+             Download PDF
         </a>
         """, unsafe_allow_html=True)
 
@@ -1835,7 +1643,7 @@ def render_download_options(patient_info: Dict, recommendations: Dict, big5_scor
     </div>
     """, unsafe_allow_html=True)
 
-# PERSONALITY & RAGA FUNCTIONS
+    # PERSONALITY & RAGA FUNCTIONS
 
 def create_personality_radar(base_values: Dict, adjusted_values: Dict = None):
     """Create premium radar chart for Big-5 personality"""
@@ -1850,7 +1658,7 @@ def create_personality_radar(base_values: Dict, adjusted_values: Dict = None):
         theta=categories,
         fill='toself',
         name='Base Personality',
-        line=dict(color='#A3B18A', width=3),
+        line=dict(color='#364153', width=3),
         fillcolor='rgba(163, 177, 138, 0.2)'
     ))
     
@@ -1862,7 +1670,7 @@ def create_personality_radar(base_values: Dict, adjusted_values: Dict = None):
             theta=categories,
             fill='toself',
             name='Adjusted (Nature)',
-            line=dict(color='#E8DDB5', width=3),
+            line=dict(color='#364153', width=3),
             fillcolor='rgba(232, 221, 181, 0.2)'
         ))
     
@@ -1883,10 +1691,10 @@ def create_personality_radar(base_values: Dict, adjusted_values: Dict = None):
         showlegend=True,
         title={
             'text': "Big-5 Personality Profile",
-            'font': {'size': 24, 'color': '#E8DDB5', 'family': 'Inter'}
+            'font': {'size': 24, 'color': "#0A55CE", 'family': 'Inter'}
         },
-        paper_bgcolor='rgba(0, 0, 0, 0)',
-        plot_bgcolor='rgba(0, 0, 0, 0)',
+        paper_bgcolor='#0A55CE',
+        plot_bgcolor='#0A55CE',
         font=dict(color='white', family='Inter')
     )
     
@@ -2000,6 +1808,9 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
         st.warning("No recommendations available.")
         return
     
+    # Add anchor for scrolling with style to make it visible for debugging
+    st.markdown('<div id="personalized-recommendations" style="scroll-margin-top: 20px; min-height: 1px;"></div>', unsafe_allow_html=True)
+
     st.markdown(f"""
     <div class='glass-card'>
         <h2 style='margin-bottom: 0.5rem;'> Personalized Music Recommendations</h2>
@@ -2010,16 +1821,10 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
     """, unsafe_allow_html=True)
     
     # Get TheraMuse instance
-    try:
-        theramuse = get_theramuse()
-        # Check if using in-memory database (Streamlit Cloud)
-        if hasattr(theramuse.db, 'db_path') and theramuse.db.db_path == ":memory:":
-            st.info("🌐 Running on Streamlit Cloud with temporary storage. Your data will be saved during this session.")
-        else:
-            st.success("✅ Database connected successfully!")
-    except Exception as e:
-        st.error(f"Database connection error: {e}")
-        st.stop()
+    if 'theramuse' not in st.session_state:
+        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+
+    theramuse = st.session_state.theramuse
     
     # Display by category
     category_labels = {
@@ -2093,16 +1898,17 @@ def render_recommendations_with_feedback(recommendations: Dict, patient_info: Di
 def page_intake():
     """Patient intake page with premium design"""
     render_logo(size=220)
-    
+
     st.markdown("""
     <div class='glass-card'>
         <h2>Patient Intake</h2>
-        <p style='color: rgba(255,255,255,0.7); font-size: 1.05rem;'>
+        <p style='color: #364153; font-size: 1.05rem;'>
             Complete the assessment to receive TheramuseRX personalized music recommendations.
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
+
     # Initialize session state flags
     if 'show_results' not in st.session_state:
         st.session_state.show_results = False
@@ -2116,7 +1922,7 @@ def page_intake():
             st.session_state.form_data = {}
 
         # Text inputs outside of form to prevent Enter submission
-        st.markdown("###  Demographics")
+        st.markdown('<h3 style="color:#364153; font-size:28px; font-weight:700;">Demographics</h3>', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
 
         # Use session state to preserve input values
@@ -2161,7 +1967,10 @@ def page_intake():
         )
         st.session_state.form_data['sex'] = sex
 
-        st.markdown("###  Musical Preferences")
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Musical Preferences</h3>',
+    unsafe_allow_html=True
+)
         preferred_instruments = st.multiselect(
             "Preferred Instruments",
             ["Piano", "Guitar", "Violin", "Flute", "Sitar", "Tabla", "Drums", "Saxophone"],
@@ -2173,7 +1982,10 @@ def page_intake():
         col1, col2 = st.columns(2)
         with col1:
             # Support multiple favorite genres
-            st.markdown("**Favorite Music Genres** (select up to 3)")
+            st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Favorite Music Genres (select up to 3)</h3>',
+    unsafe_allow_html=True
+)
             favorite_genre1 = st.selectbox(
                 "Favorite Genre 1 *",
                 ["", "Classical", "Jazz", "Rock", "Pop", "R&B", "Hip-Hop", "Country", "Folk", "Electronic", "Metal", "Indie", "Blues", "Reggae", "Classical Fusion", "Bengali Folk"],
@@ -2212,7 +2024,10 @@ def page_intake():
             )
             st.session_state.form_data['favorite_musician'] = favorite_musician
 
-        st.markdown("###  Environmental Preferences")
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Environmental Preferences</h3>',
+    unsafe_allow_html=True
+)
         col1, col2 = st.columns(2)
         with col1:
             favorite_season = st.selectbox(
@@ -2231,8 +2046,14 @@ def page_intake():
             )
             st.session_state.form_data['natural_elements'] = natural_elements
 
-        st.markdown("###  Health & Wellness Profile")
-        st.markdown("Select the condition for therapy:")
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Health & Wellness Profile</h3>',
+    unsafe_allow_html=True
+)
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Select the condition for therapy:</h3>',
+    unsafe_allow_html=True
+)
 
         condition = st.selectbox(
             "Primary Condition *",
@@ -2243,7 +2064,10 @@ def page_intake():
         st.session_state.form_data['condition'] = condition
 
         # Memory & Sleep Assessment - shown for all conditions
-        st.markdown("#### Memory & Sleep Assessment")
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Memory & Sleep Assessment</h3>',
+    unsafe_allow_html=True
+)
         difficulty_sleeping = st.checkbox(
             "Difficulty sleeping?",
             value=st.session_state.form_data.get('difficulty_sleeping', False),
@@ -2286,8 +2110,14 @@ def page_intake():
         )
         st.session_state.form_data['visited_mental_health'] = visited_mental_health
 
-        st.markdown("###  Personality Assessment (Big-5)")
-        st.markdown("Rate each statement from 1 (Strongly Disagree) to 7 (Strongly Agree)")
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Personality Assessment (Big-5)</h3>',
+    unsafe_allow_html=True
+)
+        st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Rate each statement from 1 (Strongly Disagree) to 7 (Strongly Agree)</h3>',
+    unsafe_allow_html=True
+)
 
         statements = [
             "I see myself as extraverted, enthusiastic",
@@ -2308,7 +2138,7 @@ def page_intake():
         with st.form("submission_form"):
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                submitted = st.form_submit_button("TheramusRX Recommendations", type="primary", width='stretch')
+                submitted = st.form_submit_button("Theramuse Recommendations", type="primary", width='stretch')
 
         # ONLY process when form is explicitly submitted
         if submitted:
@@ -2377,7 +2207,10 @@ def page_intake():
             # Initialize TheraMuse
             with st.spinner(f" TheramuseRX is generating personalized recommendations "):
                 try:
-                    theramuse = get_theramuse()
+                    if 'theramuse' not in st.session_state:
+                        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
+
+                    theramuse = st.session_state.theramuse
 
                     # Get recommendations
                     recommendations = theramuse.get_therapy_recommendations(
@@ -2412,12 +2245,26 @@ def page_intake():
 
             st.success(f" Patient intake completed! Patient ID: {patient_id}")
             st.snow()
+            # Set flag to scroll to top after rerun
+            st.session_state.scroll_to_top = True
             st.rerun()  # Rerun to show results
     
     # Display results ONLY if processing is complete and show_results is True
     if st.session_state.show_results and st.session_state.processing_complete and 'tm_recs' in st.session_state:
-        st.markdown("---")
-        st.success(f" TheramuseRX's {st.session_state.tm_recs.get('total_songs', 0)}  recommendations!")
+        # Add anchor at top for scrolling
+        st.markdown('<div id="results-top"></div>', unsafe_allow_html=True)
+
+        st.markdown(
+    f"""
+    <div style="background-color:#E8F1FF; padding:10px; border-radius:10px;">
+        <p style="color:#338AFF; font-weight:600; margin:0;">
+            TheraMuseRX's {st.session_state.tm_recs.get('total_songs', 0)} recommendations!
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
         # Start new intake button at top
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -2440,7 +2287,10 @@ def page_intake():
             )
 
         with tab2:
-            st.markdown("###  Big-5 Personality Profile")
+            st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Big-5 Personality Profile</h3>',
+    unsafe_allow_html=True
+)
             fig = create_personality_radar(st.session_state.tm_b5_scores)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -2452,35 +2302,38 @@ def page_intake():
                     if ragas:
                         st.markdown("""
                         <div class='glass-card'>
-                            <h3>🎼 Therapeutic Ragas for Your Generation</h3>
+                            <h3 style='color:#364153;'> Therapeutic Ragas for Your Generation</h3>
                         </div>
                         """, unsafe_allow_html=True)
                         for raga in ragas:
-                            st.markdown(f"<span class='category-badge'>{raga}</span>", unsafe_allow_html=True)
+                            st.markdown(f"<span class='category-badge' style='color:#364153;'>{raga}</span>", unsafe_allow_html=True)
 
         with tab3:
-            st.markdown("###  Thompson Sampling Statistics")
+            st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Thompson Sampling Statistics</h3>',
+    unsafe_allow_html=True
+)
             bandit_stats = st.session_state.tm_recs.get('bandit_stats', {})
 
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.markdown(f"""
                 <div class='metric-card'>
-                    <h3>Total Interactions</h3>
+                    <h3 style='color:#364153;'>Total Interactions</h3>
                     <h2>{bandit_stats.get('n_interactions', 0)}</h2>
                 </div>
                 """, unsafe_allow_html=True)
             with col2:
                 st.markdown(f"""
                 <div class='metric-card'>
-                    <h3>Average Reward</h3>
+                    <h3 style='color:#364153;'>Average Reward</h3>
                     <h2>{bandit_stats.get('avg_reward', 0):.3f}</h2>
                 </div>
                 """, unsafe_allow_html=True)
             with col3:
                 st.markdown(f"""
                 <div class='metric-card'>
-                    <h3>Exploration Rate</h3>
+                    <h3 style='color:#364153;'>Exploration Rate</h3>
                     <h2>{bandit_stats.get('exploration_rate', 0):.3f}</h2>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2504,50 +2357,41 @@ def page_analytics():
     </div>
     """, unsafe_allow_html=True)
     
-    try:
-        theramuse = get_theramuse()
-        # Check if using in-memory database (Streamlit Cloud)
-        if hasattr(theramuse.db, 'db_path') and theramuse.db.db_path == ":memory:":
-            st.info("🌐 Running on Streamlit Cloud with temporary storage. Analytics data available for current session only.")
-        else:
-            st.success("✅ Database connected successfully!")
-    except Exception as e:
-        st.error(f"Database connection error: {e}")
-        st.stop()
+    if 'theramuse' not in st.session_state:
+        st.session_state.theramuse = TheraMuse(db_path="/home/spectre-rosamund/Documents/ubuntu/thera/theramuse_app/theramuse.db")
 
-    # Get analytics with error handling
-    try:
-        analytics = theramuse.get_analytics()
-    except Exception as e:
-        st.error(f"Failed to load analytics: {e}")
-        analytics = {}
+    theramuse = st.session_state.theramuse
+    analytics = theramuse.get_analytics()
     
     # Top metrics
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(f"""
         <div class='metric-card'>
-            <h3>Total Sessions</h3>
-            <h2>{analytics.get('total_sessions', 0)}</h2>
+            <h3 style='color:#364153;'>Total Sessions</h3>
+            <h2 style='color:#364153;'>{analytics.get('total_sessions', 0)}</h2>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
         <div class='metric-card'>
-            <h3>Total Feedback</h3>
-            <h2>{analytics.get('total_feedback', 0)}</h2>
+            <h3 style='color:#364153;'>Total Feedback</h3>
+            <h2 style='color:#364153;'>{analytics.get('total_feedback', 0)}</h2>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
         <div class='metric-card'>
-            <h3>Total Patients</h3>
-            <h2>{analytics.get('total_patients', 0)}</h2>
+            <h3 style='color:#364153;'>Total Patients</h3>
+            <h2 style='color:#364153;'>{analytics.get('total_patients', 0)}</h2>
         </div>
         """, unsafe_allow_html=True)
     
     # Rewards by condition
-    st.markdown("###  Average Reward by Condition")
+    st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Average Reward by Condition</h3>',
+    unsafe_allow_html=True
+)
     rewards_data = analytics.get('rewards_by_condition', [])
     
     if rewards_data:
@@ -2565,7 +2409,10 @@ def page_analytics():
         st.info("No feedback data available yet. Start collecting feedback to see analytics!")
     
     # YouTube API Health
-    st.markdown("###  System Health")
+    st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">System Health</h3>',
+    unsafe_allow_html=True
+)
     health = theramuse.check_api_health()
     
     col1, col2 = st.columns(2)
@@ -2579,17 +2426,17 @@ def page_analytics():
         st.markdown("</div>", unsafe_allow_html=True)
     
     # Cache management
-    st.markdown("###  Cache Management")
-    try:
-        cache_status = theramuse.get_youtube_cache_status()
-        st.metric("YouTube Cache Size", cache_status.get('cache_size', 0))
-
-        if st.button("Clear YouTube Cache", type="secondary"):
-            theramuse.clear_youtube_cache()
-            st.success(" YouTube cache cleared!")
-            st.snow()
-    except Exception as e:
-        st.error(f"Cache management error: {e}")
+    st.markdown(
+    '<h3 style="color:#364153; font-size:28px; font-weight:700;">Cache Management</h3>',
+    unsafe_allow_html=True
+)
+    cache_status = theramuse.get_youtube_cache_status()
+    st.metric("YouTube Cache Size", cache_status.get('cache_size', 0))
+    
+    if st.button("Clear YouTube Cache", type="secondary"):
+        theramuse.clear_youtube_cache()
+        st.success(" YouTube cache cleared!")
+        st.snow()
 
 def page_research_evidence():
     """Research Evidence page with comprehensive scientific literature"""
@@ -3047,19 +2894,19 @@ def page_research_evidence():
                 border-radius: 12px;
                 border-left: 4px solid #A3B18A;
                 margin: 1.5rem 0;'>
-        <h3 style='color: #E8DDB5; margin-top: 0; margin-bottom: 1rem; font-weight: 600;'>Research Summary</h3>
-        <p style='color: #FFFFFF; line-height: 1.6; margin: 0;'>
+        <h3 style='color: #364153; margin-top: 0; margin-bottom: 1rem; font-weight: 600;'>Research Summary</h3>
+        <p style='color: style='color:#364153;'; line-height: 1.6; margin: 0;'>
             The research evidence demonstrates <strong style='color: #A3B18A;'>consistent beneficial effects</strong> of music therapy across all three populations studied.
             For dementia patients, music therapy <strong style='color: #588157;'>improves cognitive function, reduces distress, and enhances quality of life</strong>.
-            For individuals with ADHD, music therapy <strong style='color: #E8DDB5;'>shows promise in improving attention, reducing hyperactivity, and enhancing social skills</strong>.
+            For individuals with ADHD, music therapy <strong style='color: #364153;'>shows promise in improving attention, reducing hyperactivity, and enhancing social skills</strong>.
             For children with Down syndrome, music therapy <strong style='color: #A3B18A;'>significantly improves socialization, communication, and cognitive development</strong>.
-            Regarding personality and music preferences, research consistently shows that the Big Five traits predict musical preferences, with <strong style='color: #588157;'>Openness and Extraversion</strong> showing the strongest correlations with diverse musical tastes, while <strong style='color: #E8DDB5;'>Conscientiousness and Neuroticism</strong> are associated with more specific genre preferences.
+            Regarding personality and music preferences, research consistently shows that the Big Five traits predict musical preferences, with <strong style='color: #588157;'>Openness and Extraversion</strong> showing the strongest correlations with diverse musical tastes, while <strong style='color: #364153;'>Conscientiousness and Neuroticism</strong> are associated with more specific genre preferences.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div style='color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 1rem 0; font-style: italic;'>
+    <div style='color:#364153; font-size: 0.85rem; margin: 1rem 0; font-style: italic;'>
         This evidence base, comprising systematic reviews, meta-analyses, randomized controlled trials, and large-scale observational studies,
         provides strong support for the therapeutic applications of music across these populations and confirms the relationship between
         personality traits and musical preferences.
@@ -3069,7 +2916,7 @@ def page_research_evidence():
     # Research Links Section
     st.markdown("""
     <div style='margin: 2rem 0;'>
-        <h3 style='color: #E8DDB5; margin-bottom: 1rem; font-size: 1.5rem;'>🔗 Research Paper Links</h3>
+        <h3 style='color: #364153; margin-bottom: 1rem; font-size: 1.5rem;'>🔗 Research Paper Links</h3>
         <p style='color: #A3B18A; font-size: 1.1rem; margin-bottom: 1rem; font-weight: 500;'>
             Access to full research papers and additional resources:
         </p>
@@ -3187,8 +3034,8 @@ def main():
     # Sidebar navigation
     # Sidebar navigation
     # Sidebar navigation with logo
-    st.sidebar.image("b.png", width=200)
-    st.sidebar.markdown("<h1 style='text-align: center; margin-bottom: 2rem; color: #E8DDB5;'></h1>", unsafe_allow_html=True)
+    # st.sidebar.image("b.png", width=200)
+    # st.sidebar.markdown("<h1 style='text-align: center; margin-bottom: 2rem; color:  #338AFF !important;'></h1>", unsafe_allow_html=True)
 
     pages = {
     " Patient Intake": page_intake,
@@ -3201,23 +3048,127 @@ def main():
     # Always show the sidebar navigation
     selection = st.sidebar.radio("Navigation", list(pages.keys()))
 
+  
     # Check for session state navigation override
     if 'page' in st.session_state and st.session_state.page in pages:
         selection = st.session_state.page
         # Clear the session state after using it
         del st.session_state.page
 
+    # Centered image at the top of the main screen
+    logo_col_left, logo_col_center, logo_col_right = st.columns([2, 1, 2])
+    with logo_col_center:
+        st.image("b.png", width=500)
+
+    # Scroll to top if flag is set (after generating results)
+    if 'scroll_to_top' in st.session_state and st.session_state.scroll_to_top:
+        st.markdown("""
+        <script>
+            // Scroll to top immediately and also after a short delay
+            window.scrollTo(0, 0);
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+        </script>
+        """, unsafe_allow_html=True)
+        # Clear the flag
+        st.session_state.scroll_to_top = False
+
+    # Scroll to Personalized Recommendations if flag is set
+    if '_scroll_to_recommendations_flag' in st.session_state and st.session_state._scroll_to_recommendations_flag:
+        st.markdown("""
+        <script>
+            // Multiple attempts to scroll to the Personalized Music Recommendations section
+            function scrollToRecommendations() {
+                console.log('Attempting to scroll to personalized-recommendations...');
+                const element = document.getElementById('personalized-recommendations');
+                if (element) {
+                    console.log('Found element, scrolling...');
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return true;
+                } else {
+                    console.log('Element not found, trying alternative approach...');
+                    // Try finding by text content
+                    const headers = document.querySelectorAll('h2');
+                    for (let h2 of headers) {
+                        if (h2.textContent && h2.textContent.includes('Personalized Music Recommendations')) {
+                            console.log('Found by text content, scrolling...');
+                            h2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // Try immediately
+            if (!scrollToRecommendations()) {
+                // Try after 100ms
+                setTimeout(() => scrollToRecommendations(), 100);
+            }
+
+            // Try after 300ms
+            setTimeout(() => scrollToRecommendations(), 300);
+
+            // Fallback: scroll to top if element not found after 500ms
+            setTimeout(() => {
+                if (!scrollToRecommendations()) {
+                    console.log('Fallback: scrolling to top');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 500);
+        </script>
+        """, unsafe_allow_html=True)
+        # Clear the flag
+        st.session_state._scroll_to_recommendations_flag = False
+        # Clear URL parameter
+        if 'scroll' in st.query_params:
+            del st.query_params['scroll']
+
     # Display selected page
     pages[selection]()
     
     # Footer
     st.sidebar.markdown("---")
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
+    st.sidebar.markdown("")
     st.sidebar.markdown("""
-    <div style='text-align: center; padding: 1rem;'>
-        <p style='font-weight: 700; font-size: 1.1rem; color: #E8DDB5; margin-bottom: 0.5rem;'>“Where words fail, music speaks — not to the mind, but to the soul.”</p>
-        <p style='color: rgba(255,255,255,0.6); font-size: 0.9rem;'>— Hans Christian Andersen </p>
-        <p style='color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 0.5rem;'></p>
+     <style>
+    /* Ensure sidebar layout allows absolute positioning */
+    [data-testid="stSidebar"] {
+        position: relative !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Fix the footer firmly at the bottom edge */
+    .sidebar-footer {
+        position: fixed;
+        bottom: 0.2 rem;
+        left: 0;
+        width: inherit;
+        text-align: center;
+        padding: 1rem 1rem 1.5rem 1rem;
+        background-color: #338AFF; /* match sidebar color if needed */
+    }
+
+    .sidebar-footer p {
+        margin: 0;
+        line-height: 1.3;
+    }
+    </style>
+
+    <div class='sidebar-footer'>
+        <p style='font-weight:700; font-size:1.1rem; color:#FDFBF7; margin-bottom:0.5rem;'>
+            “Where words fail, music speaks — not to the mind, but to the soul.”
+        </p>
+        <p style='color:rgba(255,255,255,0.7); font-size:0.9rem;'>
+            — Hans Christian Andersen
+        </p>
     </div>
+    
     """, unsafe_allow_html=True)
     
     # System status in sidebar
